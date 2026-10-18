@@ -142,8 +142,8 @@
     </div>
 
     <script>
-        // ★ 중요: 구글 Apps Script 웹 앱 URL 입력
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxW3GyABM2ek87lRGoNpVU4ukr4kIZbYo-J3hLuv1Qd5Gm0gHKqRUezrZJp7-00EnOJJQ/exec";
+        // ★ 중요: 방금 새로 배포한 구글 Apps Script 웹 앱 URL 입력
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9Q4kHiAG_1qlr2eTPQKQeKOXucICcNI18rXfRw58iMSBACbRqC1kqpKMyoaOFY65P/exec";
 
         let productList = [];
         let techList = [];
@@ -153,12 +153,17 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
                 productList = result.products || [];
                 techList = result.techs || [];
                 applyFilter();
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
-                document.getElementById('productContainer').innerHTML = '<div class="error">데이터를 불러오는 데 실패했습니다. URL을 확인해주세요.</div>';
+                document.getElementById('productContainer').innerHTML = `<div class="error">데이터를 불러오는 데 실패했습니다.<br>(${error.message})</div>`;
             }
         }
 
