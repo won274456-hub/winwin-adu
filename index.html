@@ -1,233 +1,150 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>안산고잔 매장 업무 앱</title>
-  
-  <!-- ★ PWA 필수 설정: manifest 파일 및 앱 테마 색상, 아이콘 연결 -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#ff6600">
-  <link rel="apple-touch-icon" href="icon-192.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나이키 안산고잔 카탈로그</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff6600">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+        body { background-color: #121212; color: #e0e0e0; padding: 20px; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 24px; color: #ffffff; margin-bottom: 15px; }
+        
+        .categories { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .cat-btn { flex: 1; padding: 12px; background: #1e1e1e; border: 1px solid #333; color: #bbb; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; }
+        .cat-btn.active { background: #ff6600; color: #fff; border-color: #ff6600; }
 
-  <style>
-    /* 다크 모드 기본 배경 설정 */
-    body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #111; color: #f4f4f4; margin: 0; }
-    h2 { color: #fff; text-align: center; }
-    
-    #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; }
-    #login-screen input { padding: 15px; font-size: 1.5em; text-align: center; margin-bottom: 15px; border: 2px solid #333; border-radius: 8px; width: 150px; letter-spacing: 10px; background-color: #222; color: #fff; }
-    #login-screen input:focus { outline: none; border-color: #ff6600; }
-    #login-screen button { padding: 12px 40px; background: #ff6600; color: white; font-size: 1.1em; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
+        .search-box { margin-bottom: 15px; }
+        .search-box input { width: 100%; padding: 12px 15px; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; }
+        .search-box input:focus { outline: none; border-color: #ff6600; }
 
-    #main-app { display: none; }
+        .refresh-btn { width: 100%; padding: 12px; background: #1e1e1e; border: 1px solid #333; color: #888; border-radius: 8px; margin-bottom: 20px; cursor: pointer; font-size: 14px; }
+        .refresh-btn:hover { background: #2a2a2a; color: #fff; }
 
-    /* 탭(카테고리) 다크 모드 스타일 */
-    .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
-    .tab-btn { flex: 1; padding: 10px; font-size: 1em; font-weight: bold; border: 1px solid #333; border-radius: 5px; background: #222; color: #aaa; cursor: pointer; white-space: nowrap; }
-    .tab-btn.active { background: #ff6600; color: white; border-color: #ff6600; }
+        .product-list { display: flex; flex-direction: column; gap: 20px; }
+        .product-card { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .product-title { font-size: 18px; font-weight: bold; color: #ff8833; margin-bottom: 8px; }
+        .product-code { font-size: 14px; color: #aaa; margin-bottom: 12px; }
+        .product-price { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 12px; }
+        
+        .image-container { width: 100%; height: 220px; background: #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; color: #666; font-size: 14px; }
+        .image-container img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* 컨트롤 영역 (검색창, 버튼) */
-    .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-    .search-box { padding: 12px; font-size: 1em; border: 2px solid #333; border-radius: 5px; width: 100%; box-sizing: border-box; background-color: #222; color: #fff; }
-    .search-box::placeholder { color: #888; }
-    .search-box:focus { outline: none; border-color: #ff6600; }
-    .action-btn { padding: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
-    .action-btn:active { background: #333; }
+        .section-title { font-size: 13px; font-weight: bold; color: #ffaa66; margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; }
+        .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; }
 
-    /* 카탈로그 카드 다크 모드 스타일 */
-    .card { background: #1c1c1c; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.1s; border: 1px solid #333; }
-    .card:active { transform: scale(0.98); }
-    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .item-num { font-weight: bold; font-size: 1.2em; color: #ff6600; }
-    .item-cat { font-size: 0.8em; background: #333; padding: 3px 8px; border-radius: 12px; color: #ccc; }
-    
-    .img-container { width: 100%; height: 200px; background-color: #2a2a2a; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 10px 0; }
-    .product-img { width: 100%; height: 100%; object-fit: contain; }
-    .no-img { color: #666; font-size: 0.9em; }
-
-    /* 모달창 다크 모드 스타일 */
-    .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
-    .modal-content { background-color: #1c1c1c; width: 85%; max-width: 400px; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.8); max-height: 80vh; overflow-y: auto; border: 1px solid #333; }
-    .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; font-weight: bold; color: #888; cursor: pointer; }
-    .close-btn:hover { color: #fff; }
-    .modal-img-container { width: 100%; height: 250px; background-color: #2a2a2a; border-radius: 8px; margin: 15px 0; display: flex; justify-content: center; align-items: center; }
-    .modal-desc { line-height: 1.6; color: #ddd; font-size: 1em; white-space: pre-wrap; }
-
-    /* 로딩 스피너 애니메이션 */
-    .spinner-container { display: flex; justify-content: center; align-items: center; padding: 50px 0; flex-direction: column; }
-    .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid #ff6600; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-    .spinner-text { color: #aaa; font-weight: bold; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
+        .loading, .error { text-align: center; padding: 40px; color: #888; font-size: 16px; }
+    </style>
 </head>
 <body>
 
-  <!-- 직원 인증 화면 -->
-  <div id="login-screen">
-    <h2>직원 인증</h2>
-    <p style="color: #aaa;">매장 공통 PIN 번호를 입력하세요</p>
-    <input type="password" id="pin-input" maxlength="4" placeholder="****">
-    <button onclick="checkPin()">접속하기</button>
-  </div>
+    <header>
+        <h1>나이키 안산고잔 카탈로그</h1>
+    </header>
 
-  <!-- 앱 메인 화면 -->
-  <div id="main-app">
-    <h2>나이키 안산고잔 카탈로그</h2>
-    
-    <div class="tabs">
-      <button class="tab-btn active" onclick="setCategory('전체', this)">전체</button>
-      <button class="tab-btn" onclick="setCategory('신발', this)">신발</button>
-      <button class="tab-btn" onclick="setCategory('의류', this)">의류</button>
-      <button class="tab-btn" onclick="setCategory('용품', this)">용품</button>
+    <div class="categories">
+        <div class="cat-btn active" onclick="filterCategory('전체', this)">전체</div>
+        <div class="cat-btn" onclick="filterCategory('신발', this)">신발</div>
+        <div class="cat-btn" onclick="filterCategory('의류', this)">의류</div>
+        <div class="cat-btn" onclick="filterCategory('용품', this)">용품</div>
     </div>
 
-    <div class="controls">
-      <input type="text" id="search-input" class="search-box" placeholder="🔍 품번을 입력하세요" onkeyup="applyFilters()">
-      <button class="action-btn" onclick="loadData()">🔄 최신 데이터 불러오기</button>
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 품번 또는 상품명을 입력하세요" oninput="searchProducts()">
     </div>
-    
-    <div id="app-container"></div>
-  </div>
 
-  <!-- 상품 상세 모달창 -->
-  <div id="product-modal" class="modal-overlay" onclick="closeModalOnBg(event)">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal()">&times;</span>
-      <h2 id="modal-title" style="margin-top:0; color:#ff6600; text-align:left;">품번</h2>
-      <div class="modal-img-container" id="modal-img-box"></div>
-      <div id="modal-details" class="modal-desc"></div>
+    <button class="refresh-btn" onclick="loadSheetData()">🔄 최신 데이터 불러오기</button>
+
+    <div id="productContainer" class="product-list">
+        <div class="loading">데이터를 불러오는 중입니다...</div>
     </div>
-  </div>
 
-  <script>
-    // ★ 잊지 말고 본인의 웹 앱 URL로 다시 변경해 주세요!
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwnUzEJbhW1xUcbfPMocWAff2nHB6f9WTnfRfgXmboW9adBb2RqL0cXv-uxPZR2-OPQ/exec";
-    const CORRECT_PIN = "6662"; 
+    <script>
+        // ★ 중요: 여기에 아까 복사하신 구글 Apps Script 웹 앱 URL을 넣으세요!
+        const SCRIPT_URL = "여기에_구글_Apps_Script_웹앱_URL을_입력하세요";
 
-    let allProductData = []; 
-    let currentCategory = '전체'; 
+        let allData = [];
+        let currentCategory = '전체';
 
-    function checkPin() {
-      const inputPin = document.getElementById("pin-input").value;
-      if (inputPin === CORRECT_PIN) {
-        document.getElementById("login-screen").style.display = "none";
-        document.getElementById("main-app").style.display = "block";
-        loadData();
-      } else {
-        alert("비밀번호가 틀렸습니다.");
-        document.getElementById("pin-input").value = "";
-      }
-    }
+        async function loadSheetData() {
+            const container = document.getElementById('productContainer');
+            container.innerHTML = '<div class="loading">데이터를 불러오는 중입니다...</div>';
 
-    async function loadData() {
-      const container = document.getElementById("app-container");
-      
-      container.innerHTML = `
-        <div class="spinner-container">
-          <div class="spinner"></div>
-          <div class="spinner-text">상품 데이터를 불러오는 중...</div>
-        </div>
-      `;
-      
-      try {
-        const response = await fetch(WEB_APP_URL);
-        allProductData = await response.json();
-        applyFilters(); 
-      } catch (error) {
-        container.innerHTML = "<p style='text-align:center; color:#ff6600;'>데이터를 불러오는 데 실패했습니다.</p>";
-      }
-    }
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                allData = data;
+                displayProducts(allData);
+            } catch (error) {
+                console.error("데이터 로드 실패:", error);
+                container.innerHTML = '<div class="error">데이터를 불러오는 데 실패했습니다. Apps Script URL을 확인해주세요.</div>';
+            }
+        }
 
-    function setCategory(categoryName, btnElement) {
-      currentCategory = categoryName;
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      btnElement.classList.add('active');
-      applyFilters(); 
-    }
+        function displayProducts(items) {
+            const container = document.getElementById('productContainer');
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div class="error">표시할 상품이 없습니다.</div>';
+                return;
+            }
 
-    function applyFilters() {
-      const keyword = document.getElementById("search-input").value.toLowerCase();
-      const filteredData = allProductData.filter(item => {
-        const itemNum = item.itemNumber ? String(item.itemNumber).toLowerCase() : "";
-        const matchSearch = itemNum.includes(keyword);
-        const itemCat = item.category ? String(item.category).trim() : "";
-        const matchCategory = (currentCategory === '전체') || (itemCat === currentCategory);
-        return matchSearch && matchCategory;
-      });
-      renderList(filteredData);
-    }
+            container.innerHTML = items.map(item => `
+                <div class="product-card">
+                    <div class="product-title">${item['제품명'] || '상품명 없음'}</div>
+                    <div class="product-code">품번: ${item['품번'] || '-'} | 카테고리: ${item['카테고리'] || '-'}</div>
+                    <div class="product-price">가격: ${item['가격'] ? Number(item['가격']).toLocaleString() + '원' : '가격 미정'}</div>
+                    
+                    <div class="image-container">
+                        ${item['제품사진'] ? `<img src="${item['제품사진']}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">` : '사진 준비 중'}
+                    </div>
 
-    function renderList(dataList) {
-      const container = document.getElementById("app-container");
-      if (dataList.length === 0) {
-        container.innerHTML = "<p style='text-align:center; color:#888; margin-top:30px;'>조건에 맞는 상품이 없습니다.</p>";
-        return;
-      }
+                    <div class="section-title">핵심 스펙 (USP)</div>
+                    <div class="product-usp">${item['핵심스펙_USP'] || '등록된 스펙이 없습니다.'}</div>
 
-      let htmlString = "";
-      dataList.forEach(item => {
-        const imageHtml = item.photoUrl 
-          ? `<img class="product-img" src="${item.photoUrl}" onerror="this.src=''; this.parentElement.innerHTML='<span class=\'no-img\'>이미지 없음</span>'">`
-          : `<span class="no-img">사진 준비 중</span>`;
-        const categoryBadge = item.category ? `<span class="item-cat">${item.category}</span>` : "";
+                    <div class="section-title">세일즈 멘트</div>
+                    <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
+                </div>
+            `).join('');
+        }
 
-        htmlString += `
-          <div class="card" onclick="openModal('${item.itemNumber}')">
-            <div class="item-header">
-              <div class="item-num">${item.itemNumber}</div>
-              ${categoryBadge}
-            </div>
-            <div class="img-container">${imageHtml}</div>
-            <p><strong style="color:#aaa;">셀링 포인트:</strong> <br>${item.point}</p>
-          </div>
-        `;
-      });
-      container.innerHTML = htmlString;
-    }
+        function filterCategory(category, element) {
+            currentCategory = category;
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            applyFilter();
+        }
 
-    function openModal(targetItemNumber) {
-      const item = allProductData.find(p => String(p.itemNumber) === targetItemNumber);
-      if(!item) return;
+        function searchProducts() {
+            applyFilter();
+        }
 
-      document.getElementById("modal-title").innerText = item.itemNumber;
-      
-      const imgBox = document.getElementById("modal-img-box");
-      if(item.photoUrl) {
-        imgBox.innerHTML = `<img class="product-img" src="${item.photoUrl}" style="object-fit: contain; width:100%; height:100%;">`;
-      } else {
-        imgBox.innerHTML = `<span class="no-img">사진 준비 중</span>`;
-      }
+        function applyFilter() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = allData.filter(item => {
+                const category = String(item['카테고리'] || '').trim();
+                const name = String(item['제품명'] || '').toLowerCase();
+                const code = String(item['품번'] || '').toLowerCase();
 
-      document.getElementById("modal-details").innerHTML = `
-        <p><strong style="color:#aaa;">카테고리:</strong> ${item.category || '-'}</p>
-        <p><strong style="color:#aaa;">핵심 셀링 포인트:</strong><br>${item.point}</p>
-      `;
+                const matchesCategory = (currentCategory === '전체' || category === currentCategory);
+                const matchesKeyword = (name.includes(keyword) || code.includes(keyword));
 
-      document.getElementById("product-modal").style.display = "flex";
-    }
+                return matchesCategory && matchesKeyword;
+            });
 
-    function closeModal() {
-      document.getElementById("product-modal").style.display = "none";
-    }
+            displayProducts(filtered);
+        }
 
-    function closeModalOnBg(event) {
-      if (event.target.id === "product-modal") {
-        closeModal();
-      }
-    }
-  </script>
-
-  <!-- ★ PWA 필수 설정: 서비스 워커(sw.js) 등록 스크립트 -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('서비스 워커 등록 성공!', reg.scope))
-          .catch(err => console.log('서비스 워커 등록 실패:', err));
-      });
-    }
-  </script>
+        // 페이지 로드 시 데이터 가져오기 실행
+        window.onload = function() {
+            loadSheetData();
+        };
+    </script>
+</body>
+</html>
 
 </body>
 </html>
