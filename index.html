@@ -3,28 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나이키 안산고잔 통합 관리 앱</title>
+    <title>나이키 안산고잔 카탈로그</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ff6600">
+    <meta name="theme-color" content="#121212">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
-        body { background-color: #121212; color: #e0e0e0; padding: 20px; }
+        body { background-color: #121212; color: #e0e0e0; padding: 20px; padding-bottom: 50px; }
         header { text-align: center; margin-bottom: 20px; }
-        h1 { font-size: 24px; color: #ffffff; margin-bottom: 15px; }
+        h1 { font-size: 22px; color: #ffffff; margin-bottom: 15px; }
         
-        .categories { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .cat-btn { flex: 1; padding: 12px 8px; background: #1e1e1e; border: 1px solid #333; color: #bbb; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; }
+        /* 탭 메뉴 (전체 제외, 신발 / 의류 / 기술) */
+        .categories { display: flex; gap: 8px; margin-bottom: 15px; }
+        .cat-btn { flex: 1; padding: 12px 6px; background: #1e1e1e; border: 1px solid #333; color: #bbb; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; }
         .cat-btn.active { background: #ff6600; color: #fff; border-color: #ff6600; }
 
-        .action-bar { display: flex; gap: 10px; margin-bottom: 15px; }
-        .action-btn { flex: 1; padding: 12px; background: #ff6600; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; }
-        .action-btn.secondary { background: #1e1e1e; border: 1px solid #333; color: #888; }
-
-        .search-box { margin-bottom: 15px; }
+        /* 상단 액션바 (등록 버튼만 깔끔하게) */
+        .action-bar { margin-bottom: 15px; }
+        .action-btn { width: 100%; padding: 12px; background: #1e1e1e; border: 1px solid #333; color: #ff8833; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; }
+        
+        .search-box { margin-bottom: 20px; }
         .search-box input { width: 100%; padding: 12px 15px; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; }
         .search-box input:focus { outline: none; border-color: #ff6600; }
 
-        /* 등록 폼 모달 스타일 */
+        /* 등록 폼 모달 창 */
         #formModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; max-height: 90vh; overflow-y: auto; }
         .modal-content h2 { color: #ff8833; margin-bottom: 15px; font-size: 18px; }
@@ -34,6 +35,7 @@
         .form-group textarea { height: 80px; resize: vertical; }
         .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
 
+        /* 카드 UI 스타일 */
         .product-list { display: flex; flex-direction: column; gap: 20px; }
         .product-card { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .product-title { font-size: 18px; font-weight: bold; color: #ff8833; margin-bottom: 8px; }
@@ -47,41 +49,45 @@
         .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; white-space: pre-line; }
 
         .loading, .error { text-align: center; padding: 40px; color: #888; font-size: 16px; }
+        
+        /* 새로고침 안내 텍스트 */
+        .pull-to-refresh-hint { text-align: center; font-size: 12px; color: #666; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>나이키 안산고잔 통합 관리 앱</h1>
+        <h1>나이키 안산고잔 카탈로그</h1>
     </header>
 
+    <!-- 신발, 의류, 기술 3개 탭만 배치 -->
     <div class="categories">
-        <div class="cat-btn active" onclick="filterCategory('전체', this)">전체</div>
-        <div class="cat-btn" onclick="filterCategory('신발', this)">신발</div>
+        <div class="cat-btn active" onclick="filterCategory('신발', this)">신발</div>
         <div class="cat-btn" onclick="filterCategory('의류', this)">의류</div>
         <div class="cat-btn" onclick="filterCategory('기술', this)">나이키 기술</div>
     </div>
 
     <div class="action-bar">
-        <button class="action-btn" onclick="openModal()">➕ 정보 신규 등록하기</button>
-        <button class="action-btn secondary" onclick="loadSheetData()">🔄 새로고침</button>
+        <button class="action-btn" onclick="openModal()">➕ 새로운 정보 등록하기</button>
     </div>
 
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 검색어를 입력하세요" oninput="searchProducts()">
+        <input type="text" id="searchInput" placeholder="🔍 품번 또는 상품명을 입력하세요" oninput="searchProducts()">
     </div>
+
+    <div class="pull-to-refresh-hint">💡 화면을 맨 위로 올린 뒤 아래로 당기면 새로고침됩니다.</div>
 
     <div id="productContainer" class="product-list">
         <div class="loading">데이터를 불러오는 중입니다...</div>
     </div>
 
-    <!-- 정보 등록 모달 팝업 -->
+    <!-- 정보 등록 모달 창 -->
     <div id="formModal">
         <div class="modal-content">
-            <h2>새로운 정보 등록하기</h2>
+            <h2>정보 신규 등록</h2>
             <form id="addItemForm" onsubmit="submitForm(event)">
                 <div class="form-group">
-                    <label>등록 위치 선택</label>
+                    <label>등록할 시트 선택</label>
                     <select id="targetSheet" onchange="toggleFormFields()">
                         <option value="시트1">상품 (신발/의류)</option>
                         <option value="나이키 기술">나이키 기술</option>
@@ -128,8 +134,8 @@
                     <input type="text" id="inputPhoto" placeholder="예: 시트1_Images/1.png">
                 </div>
                 <div class="modal-btns">
-                    <button type="submit" class="action-btn" style="background:#ff6600;">등록하기</button>
-                    <button type="button" class="action-btn secondary" onclick="closeModal()">취소</button>
+                    <button type="submit" class="action-btn" style="background:#ff6600; color:#fff;">등록하기</button>
+                    <button type="button" class="action-btn" style="background:#333; color:#aaa;" onclick="closeModal()">취소</button>
                 </div>
             </form>
         </div>
@@ -141,12 +147,9 @@
 
         let productList = [];
         let techList = [];
-        let currentCategory = '전체';
+        let currentCategory = '신발'; // 기본 첫 화면은 '신발'로 설정
 
         async function loadSheetData() {
-            const container = document.getElementById('productContainer');
-            container.innerHTML = '<div class="loading">데이터를 불러오는 중입니다...</div>';
-
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
@@ -155,7 +158,7 @@
                 applyFilter();
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
-                container.innerHTML = '<div class="error">데이터를 불러오는 데 실패했습니다. URL을 확인해주세요.</div>';
+                document.getElementById('productContainer').innerHTML = '<div class="error">데이터를 불러오는 데 실패했습니다. URL을 확인해주세요.</div>';
             }
         }
 
@@ -222,7 +225,8 @@
                     return name.includes(keyword) || desc.includes(keyword);
                 });
                 displayData(filtered, 'tech');
-            } else if (currentCategory === '신발' || currentCategory === '의류') {
+            } else {
+                // 신발 또는 의류 필터링
                 const filtered = productList.filter(item => {
                     const cat = String(item['카테고리'] || '').trim();
                     const name = String(item['제품명'] || '').toLowerCase();
@@ -233,13 +237,6 @@
                     return matchesCat && matchesKeyword;
                 });
                 displayData(filtered, 'product');
-            } else {
-                const filteredProducts = productList.filter(item => {
-                    const name = String(item['제품명'] || '').toLowerCase();
-                    const code = String(item['품번'] || '').toLowerCase();
-                    return name.includes(keyword) || code.includes(keyword);
-                });
-                displayData(filteredProducts, 'product');
             }
         }
 
@@ -293,7 +290,7 @@
                 postData['제품사진'] = document.getElementById('inputPhoto').value;
             }
 
-            alert("데이터를 구글 시트에 전송 중입니다...");
+            alert("구글 시트에 데이터를 등록 중입니다...");
 
             try {
                 await fetch(SCRIPT_URL, {
@@ -303,15 +300,29 @@
                     body: JSON.stringify(postData)
                 });
 
-                alert("등록이 완료되었습니다! 잠시 후 시트에 반영됩니다.");
+                alert("등록이 완료되었습니다!");
                 closeModal();
                 document.getElementById('addItemForm').reset();
-                setTimeout(loadSheetData, 2000); // 2초 뒤 새로고침
+                loadSheetData();
             } catch (err) {
                 console.error(err);
                 alert("등록 중 오류가 발생했습니다.");
             }
         }
+
+        // 모바일 위로 당겨서 새로고침 (Pull-to-Refresh) 기능 구현
+        let touchstartY = 0;
+        window.addEventListener('touchstart', e => {
+            touchstartY = e.touches[0].clientY;
+        });
+
+        window.addEventListener('touchend', e => {
+            let touchendY = e.changedTouches[0].clientY;
+            // 화면 맨 위에서 아래로 100px 이상 쓸어내릴 때 새로고침 발동
+            if (window.scrollY === 0 && (touchendY - touchstartY) > 100) {
+                loadSheetData();
+            }
+        });
 
         window.onload = function() {
             loadSheetData();
