@@ -33,7 +33,7 @@
         .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
 
         .product-list { display: flex; flex-direction: column; gap: 20px; }
-        .product-card { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .product-card { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
         .product-title { font-size: 18px; font-weight: bold; color: #ff8833; margin-bottom: 8px; }
         .product-code { font-size: 14px; color: #aaa; margin-bottom: 12px; }
         .product-price { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 12px; }
@@ -43,6 +43,9 @@
 
         .section-title { font-size: 13px; font-weight: bold; color: #ffaa66; margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; }
         .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; white-space: pre-line; }
+
+        .edit-btn { margin-top: 10px; width: 100%; padding: 10px; background: #333; color: #ff8833; border: 1px solid #444; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; }
+        .edit-btn:hover { background: #444; }
 
         .loading, .error { text-align: center; padding: 40px; color: #888; font-size: 16px; }
         .pull-to-refresh-hint { text-align: center; font-size: 12px; color: #666; margin-bottom: 15px; }
@@ -61,7 +64,7 @@
     </div>
 
     <div class="action-bar">
-        <button class="action-btn" onclick="openModal()">➕ 새로운 정보 등록하기</button>
+        <button class="action-btn" onclick="openModalForAdd()">➕ 새로운 정보 등록하기</button>
     </div>
 
     <div class="search-box">
@@ -74,11 +77,14 @@
         <div class="loading">데이터를 불러오는 중입니다...</div>
     </div>
 
-    <!-- 정보 등록 모달 창 -->
+    <!-- 정보 등록/수정 모달 창 -->
     <div id="formModal">
         <div class="modal-content">
-            <h2>정보 신규 등록</h2>
+            <h2 id="modalTitle">정보 신규 등록</h2>
             <form id="addItemForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="editRowIndex">
+                <input type="hidden" id="existingPhoto">
+                
                 <div class="form-group">
                     <label>등록할 항목 선택</label>
                     <select id="targetType" onchange="toggleFormFields()">
@@ -87,10 +93,7 @@
                         <option value="나이키 기술">나이키 기술 등록</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>ID (고유번호)</label>
-                    <input type="text" id="inputID" required placeholder="예: id123">
-                </div>
+                
                 <div class="form-group" id="groupName">
                     <label>제품명</label>
                     <input type="text" id="inputName" placeholder="예: 나이키 에어포스">
@@ -99,7 +102,7 @@
                     <label>기술 이름</label>
                     <input type="text" id="inputTechName" placeholder="예: 줌 X 라이트">
                 </div>
-                <!-- 카테고리는 선택에 맞게 자동 세팅되므로 숨김 처리 또는 고정 -->
+                
                 <input type="hidden" id="inputCategory" value="신발">
 
                 <div class="form-group" id="groupCode">
@@ -123,11 +126,15 @@
                     <textarea id="inputDesc" placeholder="기술 설명 입력"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>사진 또는 동영상 파일 선택 (갤러리에서 선택)</label>
+                    <label>사진 또는 동영상 파일 선택 (변경 시에만 선택)</label>
                     <input type="file" id="inputFile" accept="image/*,video/*">
                 </div>
+                <div class="form-group">
+                    <label>관리자 비밀번호 (필수: 6662)</label>
+                    <input type="password" id="inputPassword" required placeholder="비밀번호 입력">
+                </div>
                 <div class="modal-btns">
-                    <button type="submit" class="action-btn" style="background:#ff6600; color:#fff;">등록하기</button>
+                    <button type="submit" class="action-btn" style="background:#ff6600; color:#fff;" id="submitBtnText">등록하기</button>
                     <button type="button" class="action-btn" style="background:#333; color:#aaa;" onclick="closeModal()">취소</button>
                 </div>
             </form>
@@ -136,7 +143,7 @@
 
     <script>
         // ★ 중요: 구글 Apps Script 웹 앱 URL 입력
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4Xa2Dj_AEr1AcwnHSQRHgyakttEvqmvDP252m_IH25gIaWxBZuvvmw-l7NZYNd8jX/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7hynWUpW7_JWdt6yVIgmKuunTEgiAph2-1PlxYMXk5assOvBC7M64LkAalVXEHiXf/exec";
 
         let productList = [];
         let techList = [];
@@ -163,13 +170,13 @@
             }
 
             if (type === 'tech') {
-                container.innerHTML = items.map(item => {
+                container.innerHTML = items.map((item, idx) => {
                     const photo = item['기술사진'] || '';
                     const isVideo = photo.endsWith('.mp4') || photo.includes('video');
                     return `
                         <div class="product-card">
                             <div class="product-title">${item['기술 이름'] || '기술명 없음'}</div>
-                            <div class="product-code">분류: ${item['카테고리'] || '기술'} | ID: ${item['ID'] || '-'}</div>
+                            <div class="product-code">분류: ${item['카테고리'] || '기술'}</div>
                             
                             <div class="image-container">
                                 ${photo ? (isVideo ? `<video src="${photo}" controls></video>` : `<img src="${photo}" alt="${item['기술 이름']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">`) : '미디어 준비 중'}
@@ -177,11 +184,13 @@
 
                             <div class="section-title">기술 설명 및 가이드</div>
                             <div class="product-usp">${item['기술설명'] || '등록된 설명이 없습니다.'}</div>
+
+                            <button class="edit-btn" onclick='openModalForEdit(${JSON.stringify(item)}, "tech")'>✏️ 정보 수정하기</button>
                         </div>
                     `;
                 }).join('');
             } else {
-                container.innerHTML = items.map(item => {
+                container.innerHTML = items.map((item, idx) => {
                     const photo = item['제품사진'] || '';
                     const isVideo = photo.endsWith('.mp4') || photo.includes('video');
                     return `
@@ -199,6 +208,8 @@
 
                             <div class="section-title">세일즈 멘트</div>
                             <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
+
+                            <button class="edit-btn" onclick='openModalForEdit(${JSON.stringify(item)}, "product")'>✏️ 정보 수정하기</button>
                         </div>
                     `;
                 }).join('');
@@ -240,7 +251,44 @@
             }
         }
 
-        function openModal() { document.getElementById('formModal').style.display = 'flex'; }
+        function openModalForAdd() {
+            document.getElementById('modalTitle').innerText = "정보 신규 등록";
+            document.getElementById('submitBtnText').innerText = "등록하기";
+            document.getElementById('addItemForm').reset();
+            document.getElementById('editRowIndex').value = "";
+            document.getElementById('existingPhoto').value = "";
+            toggleFormFields();
+            document.getElementById('formModal').style.display = 'flex';
+        }
+
+        function openModalForEdit(item, type) {
+            document.getElementById('modalTitle').innerText = "정보 수정하기";
+            document.getElementById('submitBtnText').innerText = "수정 완료";
+            document.getElementById('addItemForm').reset();
+            
+            document.getElementById('editRowIndex').value = item.rowIndex;
+            
+            if (type === 'tech') {
+                document.getElementById('targetType').value = '나이키 기술';
+                toggleFormFields();
+                document.getElementById('inputTechName').value = item['기술 이름'] || '';
+                document.getElementById('inputDesc').value = item['기술설명'] || '';
+                document.getElementById('existingPhoto').value = item['기술사진'] || '';
+            } else {
+                const cat = item['카테고리'] || '신발';
+                document.getElementById('targetType').value = (cat === '의류') ? '의류' : '신발';
+                toggleFormFields();
+                document.getElementById('inputName').value = item['제품명'] || '';
+                document.getElementById('inputCode').value = item['품번'] || '';
+                document.getElementById('inputPrice').value = item['가격'] || '';
+                document.getElementById('inputUsp').value = item['핵심스펙_USP'] || '';
+                document.getElementById('inputSales').value = item['세일즈멘트'] || '';
+                document.getElementById('existingPhoto').value = item['제품사진'] || '';
+            }
+
+            document.getElementById('formModal').style.display = 'flex';
+        }
+
         function closeModal() { document.getElementById('formModal').style.display = 'none'; }
 
         function toggleFormFields() {
@@ -257,7 +305,7 @@
                 document.getElementById('groupSales').style.display = 'none';
                 document.getElementById('groupDesc').style.display = 'block';
             } else {
-                categoryInput.value = targetType; // '신발' 또는 '의류' 자동 세팅
+                categoryInput.value = targetType;
                 document.getElementById('groupName').style.display = 'block';
                 document.getElementById('groupTechName').style.display = 'none';
                 document.getElementById('groupCode').style.display = 'block';
@@ -270,15 +318,24 @@
 
         async function submitForm(event) {
             event.preventDefault();
+            const password = document.getElementById('inputPassword').value;
+            if (password !== "6662") {
+                alert("관리자 비밀번호가 틀렸습니다! (올바른 비밀번호를 입력해주세요)");
+                return;
+            }
+
             const targetType = document.getElementById('targetType').value;
             const targetSheet = (targetType === '나이키 기술') ? '나이키 기술' : '시트1';
             const fileInput = document.getElementById('inputFile');
+            const rowIndex = document.getElementById('editRowIndex').value;
+            const existingPhoto = document.getElementById('existingPhoto').value;
             
             let postData = {
                 targetSheet: targetSheet,
-                ID: document.getElementById('inputID').value,
-                카테고리: document.getElementById('inputCategory').value,
-                관리자비밀번호: "6662",
+                password: password,
+                rowIndex: rowIndex,
+                existingPhoto: existingPhoto,
+                카테고리: document.getElementById('inputCategory').value
             };
 
             if (targetType === '나이키 기술') {
@@ -298,7 +355,7 @@
                     postData.fileName = fileName;
                 }
 
-                alert("구글 시트 및 드라이브에 업로드 중입니다...");
+                alert("구글 시트에 반영 중입니다...");
 
                 try {
                     await fetch(SCRIPT_URL, {
@@ -308,13 +365,13 @@
                         body: JSON.stringify(postData)
                     });
 
-                    alert("등록이 완료되었습니다!");
+                    alert("처리가 완료되었습니다!");
                     closeModal();
                     document.getElementById('addItemForm').reset();
                     loadSheetData();
                 } catch (err) {
                     console.error(err);
-                    alert("등록 중 오류가 발생했습니다.");
+                    alert("처리 중 오류가 발생했습니다.");
                 }
             };
 
