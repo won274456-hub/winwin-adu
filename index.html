@@ -145,9 +145,8 @@
     </div>
 
     <script>
-        // ★ 1순위: 아래 큰따옴표 안에 구글 Apps Script 웹 앱 URL을 넣으세요!
-        // 만약 코드에 넣기 번거로우시면 그대로 두셔도 화면에서 입력창이 떠서 바로 연결할 수 있습니다.
-        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6U9Tb0eTtNFN9zgXvJYPYp421nSl2AgXn8CBjrGlu54VGD9w-lISgj0pClgc2xJfQ/exec;
+        // ★ 구글 Apps Script 웹 앱 URL 입력 (여기에 본인의 배포 URL을 넣어주세요)
+        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzvHe1YI-xVS6WTAMDclcwfnDlJvZ6Bck2egr7x547p_Q6SJHDlDTRQGal9Up5_NXTU/exec";
 
         function getScriptUrl() {
             const saved = localStorage.getItem('NIKE_APP_SCRIPT_URL');
@@ -160,7 +159,7 @@
         function saveScriptUrl() {
             const val = document.getElementById('manualUrlInput').value.trim();
             if (!val.startsWith('https://script.google.com')) {
-                alert('올바른 구글 Apps Script 웹 앱 URL(https://script.google.com/...)을 입력해주세요.');
+                alert('올바른 구글 Apps Script 웹 앱 URL을 입력해주세요.');
                 return;
             }
             localStorage.setItem('NIKE_APP_SCRIPT_URL', val);
@@ -172,7 +171,6 @@
         let currentCategory = '신발';
         let currentFilteredItems = [];
 
-        // ₩169,000 형태나 숫자 모두 깔끔하게 포맷팅하는 함수
         function formatPrice(priceVal) {
             if (!priceVal) return '가격 미정';
             const numStr = String(priceVal).replace(/[^0-9]/g, '');
@@ -216,7 +214,7 @@
                     <div class="error">
                         데이터를 불러오는 데 실패했습니다.<br>
                         <small style="color:#ff6666;">오류 내용: ${error.message}</small><br><br>
-                        Apps Script가 <b>'모든 사용자(Anyone)'</b> 권한으로 배포되었는지 확인하거나 아래에 새 URL을 입력해주세요.
+                        아래 입력창에 올바른 웹 앱 URL이 입력되어 있는지 확인해주세요.
                         <div class="url-setup-box">
                             <input type="text" id="manualUrlInput" value="${url}" placeholder="https://script.google.com/macros/s/.../exec">
                             <button onclick="saveScriptUrl()">URL 다시 저장 및 재시도</button>
@@ -243,7 +241,7 @@
                             <div class="product-code">분류: ${item['카테고리'] || '기술'}</div>
                             
                             <div class="image-container">
-                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${techName}" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span style=\\'color:#888;\\'>이미지 로드 실패 (Apps Script에서 setupExistingImages를 1회 실행해주세요)</span>'">`) : '<span style="color:#888;">미디어 준비 중</span>'}
+                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${techName}" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x400/222/888?text=Image+Load+Retry';">`) : '<span style="color:#888;">미디어 준비 중</span>'}
                             </div>
 
                             <div class="section-title">기술 설명 및 가이드</div>
@@ -265,7 +263,7 @@
                             <div class="product-price">가격: ${formatPrice(item['가격'])}</div>
                             
                             <div class="image-container">
-                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${prodName}" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span style=\\'color:#888;\\'>이미지 로드 실패 (Apps Script에서 setupExistingImages를 1회 실행해주세요)</span>'">`) : '<span style="color:#888;">미디어 준비 중</span>'}
+                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${prodName}" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x400/222/888?text=Image+Load+Retry';">`) : '<span style="color:#888;">미디어 준비 중</span>'}
                             </div>
 
                             <div class="section-title">핵심 스펙 (USP)</div>
