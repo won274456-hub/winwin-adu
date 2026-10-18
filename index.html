@@ -38,7 +38,7 @@
         .product-code { font-size: 14px; color: #aaa; margin-bottom: 10px; }
         .product-price { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 12px; }
         
-        .image-container { width: 100%; min-height: 220px; max-height: 400px; background: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; color: #666; font-size: 14px; }
+        .image-container { width: 100%; min-height: 220px; max-height: 400px; background: #111; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; color: #888; font-size: 14px; }
         .image-container img, .image-container video { width: 100%; height: 100%; max-height: 380px; object-fit: contain; }
 
         .section-title { font-size: 13px; font-weight: bold; color: #ffaa66; margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; }
@@ -145,8 +145,8 @@
     </div>
 
     <script>
-        // ★ 구글 Apps Script 웹 앱 URL 입력 (여기에 본인의 배포 URL을 넣어주세요)
-        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqWkqV5HdmUsoXqOQ7lODFjrLHOY_BNNZAz8AkICCCTwnCBm8yOEXHXbyGJZjyt9xD/exec";
+        // ★ 본인의 구글 Apps Script 웹 앱 URL을 아래 따옴표 안에 넣어주세요
+        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzra-vL-vjumbVv5Im-vGHImhTsHTgqIswvbMO6eQlS02yKkEfBldcd7wuGL5kNfgBN/exec;
 
         function getScriptUrl() {
             const saved = localStorage.getItem('NIKE_APP_SCRIPT_URL');
@@ -234,14 +234,14 @@
                 container.innerHTML = items.map((item, idx) => {
                     const techName = item['기술 이름'] || item['기술이름'] || '기술명 없음';
                     const photo = String(item['기술사진'] || '').trim();
-                    const isVideo = photo.endsWith('.mp4') || photo.includes('export=download');
+                    const isVideo = photo.endsWith('.mp4');
                     return `
                         <div class="product-card">
                             <div class="product-title">${techName}</div>
                             <div class="product-code">분류: ${item['카테고리'] || '기술'}</div>
                             
                             <div class="image-container">
-                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${techName}" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x400/222/888?text=Image+Load+Retry';">`) : '<span style="color:#888;">미디어 준비 중</span>'}
+                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${techName}" loading="lazy">`) : '<span style="color:#888;">미디어 준비 중</span>'}
                             </div>
 
                             <div class="section-title">기술 설명 및 가이드</div>
@@ -255,7 +255,7 @@
                 container.innerHTML = items.map((item, idx) => {
                     const prodName = item['제품명'] || '상품명 없음';
                     const photo = String(item['제품사진'] || '').trim();
-                    const isVideo = photo.endsWith('.mp4') || photo.includes('export=download');
+                    const isVideo = photo.endsWith('.mp4');
                     return `
                         <div class="product-card">
                             <div class="product-title">${prodName}</div>
@@ -263,7 +263,7 @@
                             <div class="product-price">가격: ${formatPrice(item['가격'])}</div>
                             
                             <div class="image-container">
-                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${prodName}" referrerpolicy="no-referrer" onerror="this.src='https://placehold.co/600x400/222/888?text=Image+Load+Retry';">`) : '<span style="color:#888;">미디어 준비 중</span>'}
+                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${prodName}" loading="lazy">`) : '<span style="color:#888;">미디어 준비 중</span>'}
                             </div>
 
                             <div class="section-title">핵심 스펙 (USP)</div>
