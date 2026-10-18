@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#121212">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
-        body { background-color: #121212; color: #e0e0e0; padding: 20px; padding-bottom: 50px; }
+        body { background-color: #121212; color: #e0e0e0; padding: 20px; padding-bottom: 60px; }
         header { text-align: center; margin-bottom: 20px; }
         h1 { font-size: 22px; color: #ffffff; margin-bottom: 15px; }
         
@@ -19,36 +19,39 @@
         .action-bar { margin-bottom: 15px; }
         .action-btn { width: 100%; padding: 12px; background: #1e1e1e; border: 1px solid #333; color: #ff8833; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; }
         
-        .search-box { margin-bottom: 20px; }
+        .search-box { margin-bottom: 15px; }
         .search-box input { width: 100%; padding: 12px 15px; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; }
         .search-box input:focus { outline: none; border-color: #ff6600; }
 
-        #formModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        #formModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; max-height: 90vh; overflow-y: auto; }
         .modal-content h2 { color: #ff8833; margin-bottom: 15px; font-size: 18px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; background: #222; border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 14px; }
-        .form-group textarea { height: 80px; resize: vertical; }
+        .form-group textarea { height: 90px; resize: vertical; }
         .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
 
         .product-list { display: flex; flex-direction: column; gap: 20px; }
         .product-card { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; }
         .product-title { font-size: 18px; font-weight: bold; color: #ff8833; margin-bottom: 8px; }
-        .product-code { font-size: 14px; color: #aaa; margin-bottom: 12px; }
+        .product-code { font-size: 14px; color: #aaa; margin-bottom: 10px; }
         .product-price { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 12px; }
         
-        .image-container { width: 100%; height: 220px; background: #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; color: #666; font-size: 14px; }
-        .image-container img, .image-container video { width: 100%; height: 100%; object-fit: cover; }
+        .image-container { width: 100%; min-height: 220px; max-height: 400px; background: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; color: #666; font-size: 14px; }
+        .image-container img, .image-container video { width: 100%; height: 100%; max-height: 380px; object-fit: contain; }
 
         .section-title { font-size: 13px; font-weight: bold; color: #ffaa66; margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; }
-        .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; white-space: pre-line; }
+        .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 8px; background: #222; padding: 12px; border-radius: 6px; white-space: pre-line; }
 
-        .edit-btn { margin-top: 15px; width: 100%; padding: 12px; background: #333; color: #ff8833; border: 1px solid #444; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
-        .edit-btn:hover { background: #444; }
+        .edit-btn { margin-top: 15px; width: 100%; padding: 12px; background: #2a2a2a; color: #ff8833; border: 1px solid #444; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
+        .edit-btn:hover { background: #3a3a3a; }
 
-        .loading, .error { text-align: center; padding: 40px; color: #888; font-size: 16px; }
+        .loading, .error { text-align: center; padding: 40px 20px; color: #aaa; font-size: 15px; line-height: 1.6; }
         .pull-to-refresh-hint { text-align: center; font-size: 12px; color: #666; margin-bottom: 15px; }
+        .url-setup-box { background: #222; border: 1px solid #ff6600; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .url-setup-box input { width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #444; color: #fff; border-radius: 6px; }
+        .url-setup-box button { padding: 10px 15px; background: #ff6600; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
@@ -111,7 +114,7 @@
                 </div>
                 <div class="form-group" id="groupPrice">
                     <label>가격 (숫자만)</label>
-                    <input type="number" id="inputPrice" placeholder="예: 169000">
+                    <input type="text" id="inputPrice" placeholder="예: 169000">
                 </div>
                 <div class="form-group" id="groupUsp">
                     <label>핵심 스펙 (USP)</label>
@@ -142,20 +145,66 @@
     </div>
 
     <script>
-        // ★ 중요: 방금 새로 배포한 구글 Apps Script 웹 앱 URL 입력
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9Q4kHiAG_1qlr2eTPQKQeKOXucICcNI18rXfRw58iMSBACbRqC1kqpKMyoaOFY65P/exec";
+        // ★ 1순위: 아래 큰따옴표 안에 구글 Apps Script 웹 앱 URL을 넣으세요!
+        // 만약 코드에 넣기 번거로우시면 그대로 두셔도 화면에서 입력창이 떠서 바로 연결할 수 있습니다.
+        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyizJU2vj0swiSvoxee35nKE3bQfNnvrvcuESSbX1fUGXa9F1zX07fObps4mbZWntsa/exec";
+
+        function getScriptUrl() {
+            const saved = localStorage.getItem('NIKE_APP_SCRIPT_URL');
+            if (DEFAULT_SCRIPT_URL && DEFAULT_SCRIPT_URL.startsWith('https://script.google.com')) {
+                return DEFAULT_SCRIPT_URL;
+            }
+            return saved || "";
+        }
+
+        function saveScriptUrl() {
+            const val = document.getElementById('manualUrlInput').value.trim();
+            if (!val.startsWith('https://script.google.com')) {
+                alert('올바른 구글 Apps Script 웹 앱 URL(https://script.google.com/...)을 입력해주세요.');
+                return;
+            }
+            localStorage.setItem('NIKE_APP_SCRIPT_URL', val);
+            loadSheetData();
+        }
 
         let productList = [];
         let techList = [];
         let currentCategory = '신발';
+        let currentFilteredItems = [];
+
+        // ₩169,000 형태나 숫자 모두 깔끔하게 포맷팅하는 함수
+        function formatPrice(priceVal) {
+            if (!priceVal) return '가격 미정';
+            const numStr = String(priceVal).replace(/[^0-9]/g, '');
+            if (!numStr) return priceVal;
+            return Number(numStr).toLocaleString() + '원';
+        }
 
         async function loadSheetData() {
+            const container = document.getElementById('productContainer');
+            const url = getScriptUrl();
+
+            if (!url) {
+                container.innerHTML = `
+                    <div class="error">
+                        ⚠️ <b>구글 Apps Script 웹 앱 URL이 설정되지 않았습니다.</b><br>
+                        아래 칸에 배포된 웹 앱 URL을 붙여넣고 저장을 눌러주세요.
+                        <div class="url-setup-box">
+                            <input type="text" id="manualUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+                            <button onclick="saveScriptUrl()">URL 저장 및 데이터 불러오기</button>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '<div class="loading">데이터를 불러오는 중입니다...</div>';
+
             try {
-                const response = await fetch(SCRIPT_URL);
+                const response = await fetch(url, { redirect: 'follow' });
                 const result = await response.json();
                 
-                if (result.error) {
-                    throw new Error(result.error);
+                if (result.status === "error" || result.error) {
+                    throw new Error(result.message || result.error);
                 }
 
                 productList = result.products || [];
@@ -163,7 +212,16 @@
                 applyFilter();
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
-                document.getElementById('productContainer').innerHTML = `<div class="error">데이터를 불러오는 데 실패했습니다.<br>(${error.message})</div>`;
+                container.innerHTML = `
+                    <div class="error">
+                        데이터를 불러오는 데 실패했습니다.<br>
+                        <small style="color:#ff6666;">오류 내용: ${error.message}</small><br><br>
+                        Apps Script가 <b>'모든 사용자(Anyone)'</b> 권한으로 배포되었는지 확인하거나 아래에 새 URL을 입력해주세요.
+                        <div class="url-setup-box">
+                            <input type="text" id="manualUrlInput" value="${url}" placeholder="https://script.google.com/macros/s/.../exec">
+                            <button onclick="saveScriptUrl()">URL 다시 저장 및 재시도</button>
+                        </div>
+                    </div>`;
             }
         }
 
@@ -176,36 +234,38 @@
 
             if (type === 'tech') {
                 container.innerHTML = items.map((item, idx) => {
-                    const photo = item['기술사진'] || '';
-                    const isVideo = photo.endsWith('.mp4') || photo.includes('video');
+                    const techName = item['기술 이름'] || item['기술이름'] || '기술명 없음';
+                    const photo = String(item['기술사진'] || '').trim();
+                    const isVideo = photo.endsWith('.mp4') || photo.includes('export=download');
                     return `
                         <div class="product-card">
-                            <div class="product-title">${item['기술 이름'] || '기술명 없음'}</div>
+                            <div class="product-title">${techName}</div>
                             <div class="product-code">분류: ${item['카테고리'] || '기술'}</div>
                             
                             <div class="image-container">
-                                ${photo ? (isVideo ? `<video src="${photo}" controls></video>` : `<img src="${photo}" alt="${item['기술 이름']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">`) : '미디어 준비 중'}
+                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${techName}" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span style=\\'color:#888;\\'>이미지 로드 실패 (Apps Script에서 setupExistingImages를 1회 실행해주세요)</span>'">`) : '<span style="color:#888;">미디어 준비 중</span>'}
                             </div>
 
                             <div class="section-title">기술 설명 및 가이드</div>
                             <div class="product-usp">${item['기술설명'] || '등록된 설명이 없습니다.'}</div>
 
-                            <button class="edit-btn" onclick='openModalForEdit(${idx}, "tech")'>✏️ 정보 수정하기</button>
+                            <button class="edit-btn" onclick="openModalForEdit(${idx}, 'tech')">✏️ 정보 수정하기</button>
                         </div>
                     `;
                 }).join('');
             } else {
                 container.innerHTML = items.map((item, idx) => {
-                    const photo = item['제품사진'] || '';
-                    const isVideo = photo.endsWith('.mp4') || photo.includes('video');
+                    const prodName = item['제품명'] || '상품명 없음';
+                    const photo = String(item['제품사진'] || '').trim();
+                    const isVideo = photo.endsWith('.mp4') || photo.includes('export=download');
                     return `
                         <div class="product-card">
-                            <div class="product-title">${item['제품명'] || '상품명 없음'}</div>
+                            <div class="product-title">${prodName}</div>
                             <div class="product-code">품번: ${item['품번'] || '-'} | 카테고리: ${item['카테고리'] || '-'}</div>
-                            <div class="product-price">가격: ${item['가격'] ? Number(item['가격']).toLocaleString() + '원' : '가격 미정'}</div>
+                            <div class="product-price">가격: ${formatPrice(item['가격'])}</div>
                             
                             <div class="image-container">
-                                ${photo ? (isVideo ? `<video src="${photo}" controls></video>` : `<img src="${photo}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">`) : '미디어 준비 중'}
+                                ${photo ? (isVideo ? `<video src="${photo}" controls playsinline></video>` : `<img src="${photo}" alt="${prodName}" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span style=\\'color:#888;\\'>이미지 로드 실패 (Apps Script에서 setupExistingImages를 1회 실행해주세요)</span>'">`) : '<span style="color:#888;">미디어 준비 중</span>'}
                             </div>
 
                             <div class="section-title">핵심 스펙 (USP)</div>
@@ -214,7 +274,7 @@
                             <div class="section-title">세일즈 멘트</div>
                             <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
 
-                            <button class="edit-btn" onclick='openModalForEdit(${idx}, "product")'>✏️ 정보 수정하기</button>
+                            <button class="edit-btn" onclick="openModalForEdit(${idx}, 'product')">✏️ 정보 수정하기</button>
                         </div>
                     `;
                 }).join('');
@@ -232,22 +292,17 @@
             applyFilter();
         }
 
-        let currentFilteredItems = [];
-        let currentFilteredType = 'product';
-
         function applyFilter() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
             if (currentCategory === '기술') {
-                currentFilteredType = 'tech';
                 currentFilteredItems = techList.filter(item => {
-                    const name = String(item['기술 이름'] || '').toLowerCase();
+                    const name = String(item['기술 이름'] || item['기술이름'] || '').toLowerCase();
                     const desc = String(item['기술설명'] || '').toLowerCase();
                     return name.includes(keyword) || desc.includes(keyword);
                 });
                 displayData(currentFilteredItems, 'tech');
             } else {
-                currentFilteredType = 'product';
                 currentFilteredItems = productList.filter(item => {
                     const cat = String(item['카테고리'] || '').trim();
                     const name = String(item['제품명'] || '').toLowerCase();
@@ -267,6 +322,11 @@
             document.getElementById('addItemForm').reset();
             document.getElementById('editRowIndex').value = "";
             document.getElementById('existingPhoto').value = "";
+            
+            if (currentCategory === '의류') document.getElementById('targetType').value = '의류';
+            else if (currentCategory === '기술') document.getElementById('targetType').value = '나이키 기술';
+            else document.getElementById('targetType').value = '신발';
+            
             toggleFormFields();
             document.getElementById('formModal').style.display = 'flex';
         }
@@ -282,16 +342,16 @@
             if (type === 'tech') {
                 document.getElementById('targetType').value = '나이키 기술';
                 toggleFormFields();
-                document.getElementById('inputTechName').value = item['기술 이름'] || '';
+                document.getElementById('inputTechName').value = item['기술 이름'] || item['기술이름'] || '';
                 document.getElementById('inputDesc').value = item['기술설명'] || '';
                 document.getElementById('existingPhoto').value = item['기술사진'] || '';
             } else {
-                const cat = item['카테고리'] || '신발';
+                const cat = String(item['카테고리'] || '신발').trim();
                 document.getElementById('targetType').value = (cat === '의류') ? '의류' : '신발';
                 toggleFormFields();
                 document.getElementById('inputName').value = item['제품명'] || '';
                 document.getElementById('inputCode').value = item['품번'] || '';
-                document.getElementById('inputPrice').value = item['가격'] || '';
+                document.getElementById('inputPrice').value = String(item['가격'] || '').replace(/[^0-9]/g, '');
                 document.getElementById('inputUsp').value = item['핵심스펙_USP'] || '';
                 document.getElementById('inputSales').value = item['세일즈멘트'] || '';
                 document.getElementById('existingPhoto').value = item['제품사진'] || '';
@@ -307,7 +367,7 @@
             const categoryInput = document.getElementById('inputCategory');
             
             if (targetType === '나이키 기술') {
-                categoryInput.value = '기술';
+                categoryInput.value = '신발';
                 document.getElementById('groupName').style.display = 'none';
                 document.getElementById('groupTechName').style.display = 'block';
                 document.getElementById('groupCode').style.display = 'none';
@@ -329,12 +389,13 @@
 
         async function submitForm(event) {
             event.preventDefault();
-            const password = document.getElementById('inputPassword').value;
+            const password = document.getElementById('inputPassword').value.trim();
             if (password !== "6662") {
                 alert("관리자 비밀번호가 틀렸습니다!");
                 return;
             }
 
+            const url = getScriptUrl();
             const targetType = document.getElementById('targetType').value;
             const targetSheet = (targetType === '나이키 기술') ? '나이키 기술' : '시트1';
             const fileInput = document.getElementById('inputFile');
@@ -366,23 +427,28 @@
                     postData.fileName = fileName;
                 }
 
-                alert("구글 시트에 반영 중입니다...");
+                const btn = document.getElementById('submitBtnText');
+                btn.innerText = "전송 중...";
+                btn.disabled = true;
 
                 try {
-                    await fetch(SCRIPT_URL, {
+                    await fetch(url, {
                         method: 'POST',
                         mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(postData)
                     });
 
-                    alert("처리가 완료되었습니다!");
+                    alert("구글 시트에 성공적으로 반영되었습니다!");
                     closeModal();
                     document.getElementById('addItemForm').reset();
-                    loadSheetData();
+                    setTimeout(loadSheetData, 1500);
                 } catch (err) {
                     console.error(err);
                     alert("처리 중 오류가 발생했습니다.");
+                } finally {
+                    btn.innerText = "등록하기";
+                    btn.disabled = false;
                 }
             };
 
