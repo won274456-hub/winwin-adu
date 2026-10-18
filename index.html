@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>안산고잔 매장 업무 앱</title>
+  
+  <!-- ★ PWA 필수 설정: manifest 파일 및 앱 테마 색상, 아이콘 연결 -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#ff6600">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <style>
+    /* 다크 모드 기본 배경 설정 */
+    body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #111; color: #f4f4f4; margin: 0; }
+    h2 { color: #fff; text-align: center; }
+    
+    #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; }
+    #login-screen input { padding: 15px; font-size: 1.5em; text-align: center; margin-bottom: 15px; border: 2px solid #333; border-radius: 8px; width: 150px; letter-spacing: 10px; background-color: #222; color: #fff; }
+    #login-screen input:focus { outline: none; border-color: #ff6600; }
+    #login-screen button { padding: 12px 40px; background: #ff6600; color: white; font-size: 1.1em; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
+
+    #main-app { display: none; }
+
+    /* 탭(카테고리) 다크 모드 스타일 */
+    .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
+    .tab-btn { flex: 1; padding: 10px; font-size: 1em; font-weight: bold; border: 1px solid #333; border-radius: 5px; background: #222; color: #aaa; cursor: pointer; white-space: nowrap; }
+    .tab-btn.active { background: #ff6600; color: white; border-color: #ff6600; }
+
+    /* 컨트롤 영역 (검색창, 버튼) */
+    .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .search-box { padding: 12px; font-size: 1em; border: 2px solid #333; border-radius: 5px; width: 100%; box-sizing: border-box; background-color: #222; color: #fff; }
+    .search-box::placeholder { color: #888; }
+    .search-box:focus { outline: none; border-color: #ff6600; }
+    .action-btn { padding: 12px; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; cursor: pointer; font-size: 0.9em; }
+    .action-btn:active { background: #333; }
+
+    /* 카탈로그 카드 다크 모드 스타일 */
+    .card { background: #1c1c1c; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.1s; border: 1px solid #333; }
+    .card:active { transform: scale(0.98); }
+    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .item-num { font-weight: bold; font-size: 1.2em; color: #ff6600; }
+    .item-cat { font-size: 0.8em; background: #333; padding: 3px 8px; border-radius: 12px; color: #ccc; }
+    
+    .img-container { width: 100%; height: 200px; background-color: #2a2a2a; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 10px 0; }
+    .product-img { width: 100%; height: 100%; object-fit: contain; }
+    .no-img { color: #666; font-size: 0.9em; }
+
+    /* 모달창 다크 모드 스타일 */
+    .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+    .modal-content { background-color: #1c1c1c; width: 85%; max-width: 400px; border-radius: 12px; padding: 20px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.8); max-height: 80vh; overflow-y: auto; border: 1px solid #333; }
+    .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5em; font-weight: bold; color: #888; cursor: pointer; }
+    .close-btn:hover { color: #fff; }
+    .modal-img-container { width: 100%; height: 250px; background-color: #2a2a2a; border-radius: 8px; margin: 15px 0; display: flex; justify-content: center; align-items: center; }
+    .modal-desc { line-height: 1.6; color: #ddd; font-size: 1em; white-space: pre-wrap; }
+
+    /* 로딩 스피너 애니메이션 */
+    .spinner-container { display: flex; justify-content: center; align-items: center; padding: 50px 0; flex-direction: column; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid #ff6600; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+    .spinner-text { color: #aaa; font-weight: bold; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- 직원 인증 화면 -->
+  <div id="login-screen">
+    <h2>직원 인증</h2>
+    <p style="color: #aaa;">매장 공통 PIN 번호를 입력하세요</p>
+    <input type="password" id="pin-input" maxlength="4" placeholder="****">
+    <button onclick="checkPin()">접속하기</button>
+  </div>
+
+  <!-- 앱 메인 화면 -->
+  <div id="main-app">
+    <h2>나이키 안산고잔 카탈로그</h2>
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setCategory('전체', this)">전체</button>
+      <button class="tab-btn" onclick="setCategory('신발', this)">신발</button>
+      <button class="tab-btn" onclick="setCategory('의류', this)">의류</button>
+      <button class="tab-btn" onclick="setCategory('용품', this)">용품</button>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="search-input" class="search-box" placeholder="🔍 품번을 입력하세요" onkeyup="applyFilters()">
+      <button class="action-btn" onclick="loadData()">🔄 최신 데이터 불러오기</button>
+    </div>
+    
+    <div id="app-container"></div>
+  </div>
+
+  <!-- 상품 상세 모달창 -->
+  <div id="product-modal" class="modal-overlay" onclick="closeModalOnBg(event)">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modal-title" style="margin-top:0; color:#ff6600; text-align:left;">품번</h2>
+      <div class="modal-img-container" id="modal-img-box"></div>
+      <div id="modal-details" class="modal-desc"></div>
+    </div>
+  </div>
+
+  <script>
+    // ★ 잊지 말고 본인의 웹 앱 URL로 다시 변경해 주세요!
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-I45WlPkzxgD3DSwf_0ukkQRTjxbdi4McZSF8ofQ6k9QzGSESD_OPbDI0f-2aWnno/exec";
+    const CORRECT_PIN = "6662"; 
+
+    let allProductData = []; 
+    let currentCategory = '전체'; 
+
+    function checkPin() {
+      const inputPin = document.getElementById("pin-input").value;
+      if (inputPin === CORRECT_PIN) {
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("main-app").style.display = "block";
+        loadData();
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+        document.getElementById("pin-input").value = "";
+      }
+    }
+
+    async function loadData() {
+      const container = document.getElementById("app-container");
+      
+      container.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <div class="spinner-text">상품 데이터를 불러오는 중...</div>
+        </div>
+      `;
+      
+      try {
+        const response = await fetch(WEB_APP_URL);
+        allProductData = await response.json();
+        applyFilters(); 
+      } catch (error) {
+        container.innerHTML = "<p style='text-align:center; color:#ff6600;'>데이터를 불러오는 데 실패했습니다.</p>";
+      }
+    }
+
+    function setCategory(categoryName, btnElement) {
+      currentCategory = categoryName;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+      applyFilters(); 
+    }
+
+    function applyFilters() {
+      const keyword = document.getElementById("search-input").value.toLowerCase();
+      const filteredData = allProductData.filter(item => {
+        const itemNum = item.itemNumber ? String(item.itemNumber).toLowerCase() : "";
+        const matchSearch = itemNum.includes(keyword);
+        const itemCat = item.category ? String(item.category).trim() : "";
+        const matchCategory = (currentCategory === '전체') || (itemCat === currentCategory);
+        return matchSearch && matchCategory;
+      });
+      renderList(filteredData);
+    }
+
+    function renderList(dataList) {
+      const container = document.getElementById("app-container");
+      if (dataList.length === 0) {
+        container.innerHTML = "<p style='text-align:center; color:#888; margin-top:30px;'>조건에 맞는 상품이 없습니다.</p>";
+        return;
+      }
+
+      let htmlString = "";
+      dataList.forEach(item => {
+        const imageHtml = item.photoUrl 
+          ? `<img class="product-img" src="${item.photoUrl}" onerror="this.src=''; this.parentElement.innerHTML='<span class=\'no-img\'>이미지 없음</span>'">`
+          : `<span class="no-img">사진 준비 중</span>`;
+        const categoryBadge = item.category ? `<span class="item-cat">${item.category}</span>` : "";
+
+        htmlString += `
+          <div class="card" onclick="openModal('${item.itemNumber}')">
+            <div class="item-header">
+              <div class="item-num">${item.itemNumber}</div>
+              ${categoryBadge}
+            </div>
+            <div class="img-container">${imageHtml}</div>
+            <p><strong style="color:#aaa;">셀링 포인트:</strong> <br>${item.point}</p>
+          </div>
+        `;
+      });
+      container.innerHTML = htmlString;
+    }
+
+    function openModal(targetItemNumber) {
+      const item = allProductData.find(p => String(p.itemNumber) === targetItemNumber);
+      if(!item) return;
+
+      document.getElementById("modal-title").innerText = item.itemNumber;
+      
+      const imgBox = document.getElementById("modal-img-box");
+      if(item.photoUrl) {
+        imgBox.innerHTML = `<img class="product-img" src="${item.photoUrl}" style="object-fit: contain; width:100%; height:100%;">`;
+      } else {
+        imgBox.innerHTML = `<span class="no-img">사진 준비 중</span>`;
+      }
+
+      document.getElementById("modal-details").innerHTML = `
+        <p><strong style="color:#aaa;">카테고리:</strong> ${item.category || '-'}</p>
+        <p><strong style="color:#aaa;">핵심 셀링 포인트:</strong><br>${item.point}</p>
+      `;
+
+      document.getElementById("product-modal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("product-modal").style.display = "none";
+    }
+
+    function closeModalOnBg(event) {
+      if (event.target.id === "product-modal") {
+        closeModal();
+      }
+    }
+  </script>
+
+  <!-- ★ PWA 필수 설정: 서비스 워커(sw.js) 등록 스크립트 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('서비스 워커 등록 성공!', reg.scope))
+          .catch(err => console.log('서비스 워커 등록 실패:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>
