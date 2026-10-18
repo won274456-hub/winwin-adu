@@ -80,10 +80,11 @@
             <h2>정보 신규 등록</h2>
             <form id="addItemForm" onsubmit="submitForm(event)">
                 <div class="form-group">
-                    <label>등록할 시트 선택</label>
-                    <select id="targetSheet" onchange="toggleFormFields()">
-                        <option value="시트1">상품 (신발/의류)</option>
-                        <option value="나이키 기술">나이키 기술</option>
+                    <label>등록할 항목 선택</label>
+                    <select id="targetType" onchange="toggleFormFields()">
+                        <option value="신발">신발 상품 등록</option>
+                        <option value="의류">의류 상품 등록</option>
+                        <option value="나이키 기술">나이키 기술 등록</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -98,10 +99,9 @@
                     <label>기술 이름</label>
                     <input type="text" id="inputTechName" placeholder="예: 줌 X 라이트">
                 </div>
-                <div class="form-group">
-                    <label>카테고리</label>
-                    <input type="text" id="inputCategory" placeholder="예: 신발 또는 의류">
-                </div>
+                <!-- 카테고리는 선택에 맞게 자동 세팅되므로 숨김 처리 또는 고정 -->
+                <input type="hidden" id="inputCategory" value="신발">
+
                 <div class="form-group" id="groupCode">
                     <label>품번</label>
                     <input type="text" id="inputCode" placeholder="예: CJ9179-200">
@@ -244,8 +244,11 @@
         function closeModal() { document.getElementById('formModal').style.display = 'none'; }
 
         function toggleFormFields() {
-            const target = document.getElementById('targetSheet').value;
-            if (target === '나이키 기술') {
+            const targetType = document.getElementById('targetType').value;
+            const categoryInput = document.getElementById('inputCategory');
+            
+            if (targetType === '나이키 기술') {
+                categoryInput.value = '기술';
                 document.getElementById('groupName').style.display = 'none';
                 document.getElementById('groupTechName').style.display = 'block';
                 document.getElementById('groupCode').style.display = 'none';
@@ -254,6 +257,7 @@
                 document.getElementById('groupSales').style.display = 'none';
                 document.getElementById('groupDesc').style.display = 'block';
             } else {
+                categoryInput.value = targetType; // '신발' 또는 '의류' 자동 세팅
                 document.getElementById('groupName').style.display = 'block';
                 document.getElementById('groupTechName').style.display = 'none';
                 document.getElementById('groupCode').style.display = 'block';
@@ -264,10 +268,10 @@
             }
         }
 
-        // 파일 읽기 및 데이터 전송 함수
         async function submitForm(event) {
             event.preventDefault();
-            const targetSheet = document.getElementById('targetSheet').value;
+            const targetType = document.getElementById('targetType').value;
+            const targetSheet = (targetType === '나이키 기술') ? '나이키 기술' : '시트1';
             const fileInput = document.getElementById('inputFile');
             
             let postData = {
@@ -277,7 +281,7 @@
                 관리자비밀번호: "6662",
             };
 
-            if (targetSheet === '나이키 기술') {
+            if (targetType === '나이키 기술') {
                 postData['기술 이름'] = document.getElementById('inputTechName').value;
                 postData['기술설명'] = document.getElementById('inputDesc').value;
             } else {
