@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나이키 안산고잔 통합 카탈로그 & 기술 백과</title>
+    <title>나이키 안산고잔 통합 관리 앱</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff6600">
     <style>
@@ -16,12 +16,23 @@
         .cat-btn { flex: 1; padding: 12px 8px; background: #1e1e1e; border: 1px solid #333; color: #bbb; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; }
         .cat-btn.active { background: #ff6600; color: #fff; border-color: #ff6600; }
 
+        .action-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .action-btn { flex: 1; padding: 12px; background: #ff6600; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; }
+        .action-btn.secondary { background: #1e1e1e; border: 1px solid #333; color: #888; }
+
         .search-box { margin-bottom: 15px; }
         .search-box input { width: 100%; padding: 12px 15px; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; }
         .search-box input:focus { outline: none; border-color: #ff6600; }
 
-        .refresh-btn { width: 100%; padding: 12px; background: #1e1e1e; border: 1px solid #333; color: #888; border-radius: 8px; margin-bottom: 20px; cursor: pointer; font-size: 14px; }
-        .refresh-btn:hover { background: #2a2a2a; color: #fff; }
+        /* 등록 폼 모달 스타일 */
+        #formModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        .modal-content h2 { color: #ff8833; margin-bottom: 15px; font-size: 18px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; background: #222; border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 14px; }
+        .form-group textarea { height: 80px; resize: vertical; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
 
         .product-list { display: flex; flex-direction: column; gap: 20px; }
         .product-card { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -41,7 +52,7 @@
 <body>
 
     <header>
-        <h1>나이키 안산고잔 통합 앱</h1>
+        <h1>나이키 안산고잔 통합 관리 앱</h1>
     </header>
 
     <div class="categories">
@@ -51,19 +62,82 @@
         <div class="cat-btn" onclick="filterCategory('기술', this)">나이키 기술</div>
     </div>
 
+    <div class="action-bar">
+        <button class="action-btn" onclick="openModal()">➕ 정보 신규 등록하기</button>
+        <button class="action-btn secondary" onclick="loadSheetData()">🔄 새로고침</button>
+    </div>
+
     <div class="search-box">
         <input type="text" id="searchInput" placeholder="🔍 검색어를 입력하세요" oninput="searchProducts()">
     </div>
-
-    <button class="refresh-btn" onclick="loadSheetData()">🔄 최신 데이터 불러오기</button>
 
     <div id="productContainer" class="product-list">
         <div class="loading">데이터를 불러오는 중입니다...</div>
     </div>
 
+    <!-- 정보 등록 모달 팝업 -->
+    <div id="formModal">
+        <div class="modal-content">
+            <h2>새로운 정보 등록하기</h2>
+            <form id="addItemForm" onsubmit="submitForm(event)">
+                <div class="form-group">
+                    <label>등록 위치 선택</label>
+                    <select id="targetSheet" onchange="toggleFormFields()">
+                        <option value="시트1">상품 (신발/의류)</option>
+                        <option value="나이키 기술">나이키 기술</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ID (고유번호)</label>
+                    <input type="text" id="inputID" required placeholder="예: id123">
+                </div>
+                <div class="form-group" id="groupName">
+                    <label>제품명</label>
+                    <input type="text" id="inputName" placeholder="예: 나이키 에어포스">
+                </div>
+                <div class="form-group" id="groupTechName" style="display:none;">
+                    <label>기술 이름</label>
+                    <input type="text" id="inputTechName" placeholder="예: 줌 X 라이트">
+                </div>
+                <div class="form-group">
+                    <label>카테고리</label>
+                    <input type="text" id="inputCategory" placeholder="예: 신발 또는 의류">
+                </div>
+                <div class="form-group" id="groupCode">
+                    <label>품번</label>
+                    <input type="text" id="inputCode" placeholder="예: CJ9179-200">
+                </div>
+                <div class="form-group" id="groupPrice">
+                    <label>가격 (숫자만)</label>
+                    <input type="number" id="inputPrice" placeholder="예: 169000">
+                </div>
+                <div class="form-group" id="groupUsp">
+                    <label>핵심 스펙 (USP)</label>
+                    <textarea id="inputUsp" placeholder="스펙 입력"></textarea>
+                </div>
+                <div class="form-group" id="groupSales">
+                    <label>세일즈 멘트</label>
+                    <textarea id="inputSales" placeholder="세일즈 멘트 입력"></textarea>
+                </div>
+                <div class="form-group" id="groupDesc" style="display:none;">
+                    <label>기술 설명</label>
+                    <textarea id="inputDesc" placeholder="기술 설명 입력"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>사진 파일명 또는 URL</label>
+                    <input type="text" id="inputPhoto" placeholder="예: 시트1_Images/1.png">
+                </div>
+                <div class="modal-btns">
+                    <button type="submit" class="action-btn" style="background:#ff6600;">등록하기</button>
+                    <button type="button" class="action-btn secondary" onclick="closeModal()">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // ★ 중요: 구글 Apps Script 웹 앱 URL 입력
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGW_fHWxnsw_GNxy4KbZA3HzbFWhjkGDn58uFklR-mXbZWvTp6I1hVnf09ABdVln3E/exec";
+        const SCRIPT_URL = "여기에_구글_Apps_Script_웹앱_URL을_입력하세요";
 
         let productList = [];
         let techList = [];
@@ -76,10 +150,8 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
-                
                 productList = result.products || [];
                 techList = result.techs || [];
-                
                 applyFilter();
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
@@ -133,7 +205,6 @@
             currentCategory = category;
             document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
-            
             applyFilter();
         }
 
@@ -163,13 +234,82 @@
                 });
                 displayData(filtered, 'product');
             } else {
-                // 전체 보기 (상품 + 기술 모두 합쳐서 보여주거나 상품 우선 정렬)
                 const filteredProducts = productList.filter(item => {
                     const name = String(item['제품명'] || '').toLowerCase();
                     const code = String(item['품번'] || '').toLowerCase();
                     return name.includes(keyword) || code.includes(keyword);
                 });
                 displayData(filteredProducts, 'product');
+            }
+        }
+
+        // 모달 열기/닫기 및 폼 토글
+        function openModal() { document.getElementById('formModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('formModal').style.display = 'none'; }
+
+        function toggleFormFields() {
+            const target = document.getElementById('targetSheet').value;
+            if (target === '나이키 기술') {
+                document.getElementById('groupName').style.display = 'none';
+                document.getElementById('groupTechName').style.display = 'block';
+                document.getElementById('groupCode').style.display = 'none';
+                document.getElementById('groupPrice').style.display = 'none';
+                document.getElementById('groupUsp').style.display = 'none';
+                document.getElementById('groupSales').style.display = 'none';
+                document.getElementById('groupDesc').style.display = 'block';
+            } else {
+                document.getElementById('groupName').style.display = 'block';
+                document.getElementById('groupTechName').style.display = 'none';
+                document.getElementById('groupCode').style.display = 'block';
+                document.getElementById('groupPrice').style.display = 'block';
+                document.getElementById('groupUsp').style.display = 'block';
+                document.getElementById('groupSales').style.display = 'block';
+                document.getElementById('groupDesc').style.display = 'none';
+            }
+        }
+
+        // 데이터 전송(업로드) 함수
+        async function submitForm(event) {
+            event.preventDefault();
+            const targetSheet = document.getElementById('targetSheet').value;
+            
+            let postData = {
+                targetSheet: targetSheet,
+                ID: document.getElementById('inputID').value,
+                카테고리: document.getElementById('inputCategory').value,
+                관리자비밀번호: "6662",
+            };
+
+            if (targetSheet === '나이키 기술') {
+                postData['기술 이름'] = document.getElementById('inputTechName').value;
+                postData['기술설명'] = document.getElementById('inputDesc').value;
+                postData['기술사진'] = document.getElementById('inputPhoto').value;
+            } else {
+                postData['제품명'] = document.getElementById('inputName').value;
+                postData['품번'] = document.getElementById('inputCode').value;
+                postData['가격'] = document.getElementById('inputPrice').value;
+                postData['핵심스펙_USP'] = document.getElementById('inputUsp').value;
+                postData['세일즈멘트'] = document.getElementById('inputSales').value;
+                postData['제품사진'] = document.getElementById('inputPhoto').value;
+            }
+
+            alert("데이터를 구글 시트에 전송 중입니다...");
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postData)
+                });
+
+                alert("등록이 완료되었습니다! 잠시 후 시트에 반영됩니다.");
+                closeModal();
+                document.getElementById('addItemForm').reset();
+                setTimeout(loadSheetData, 2000); // 2초 뒤 새로고침
+            } catch (err) {
+                console.error(err);
+                alert("등록 중 오류가 발생했습니다.");
             }
         }
 
