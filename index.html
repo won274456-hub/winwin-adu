@@ -12,12 +12,10 @@
         header { text-align: center; margin-bottom: 20px; }
         h1 { font-size: 22px; color: #ffffff; margin-bottom: 15px; }
         
-        /* 탭 메뉴 (전체 제외, 신발 / 의류 / 기술) */
         .categories { display: flex; gap: 8px; margin-bottom: 15px; }
         .cat-btn { flex: 1; padding: 12px 6px; background: #1e1e1e; border: 1px solid #333; color: #bbb; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; }
         .cat-btn.active { background: #ff6600; color: #fff; border-color: #ff6600; }
 
-        /* 상단 액션바 (등록 버튼만 깔끔하게) */
         .action-bar { margin-bottom: 15px; }
         .action-btn { width: 100%; padding: 12px; background: #1e1e1e; border: 1px solid #333; color: #ff8833; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; }
         
@@ -25,7 +23,6 @@
         .search-box input { width: 100%; padding: 12px 15px; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; }
         .search-box input:focus { outline: none; border-color: #ff6600; }
 
-        /* 등록 폼 모달 창 */
         #formModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; max-height: 90vh; overflow-y: auto; }
         .modal-content h2 { color: #ff8833; margin-bottom: 15px; font-size: 18px; }
@@ -35,7 +32,6 @@
         .form-group textarea { height: 80px; resize: vertical; }
         .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
 
-        /* 카드 UI 스타일 */
         .product-list { display: flex; flex-direction: column; gap: 20px; }
         .product-card { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .product-title { font-size: 18px; font-weight: bold; color: #ff8833; margin-bottom: 8px; }
@@ -43,14 +39,12 @@
         .product-price { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 12px; }
         
         .image-container { width: 100%; height: 220px; background: #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; color: #666; font-size: 14px; }
-        .image-container img { width: 100%; height: 100%; object-fit: cover; }
+        .image-container img, .image-container video { width: 100%; height: 100%; object-fit: cover; }
 
         .section-title { font-size: 13px; font-weight: bold; color: #ffaa66; margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; }
         .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; white-space: pre-line; }
 
         .loading, .error { text-align: center; padding: 40px; color: #888; font-size: 16px; }
-        
-        /* 새로고침 안내 텍스트 */
         .pull-to-refresh-hint { text-align: center; font-size: 12px; color: #666; margin-bottom: 15px; }
     </style>
 </head>
@@ -60,7 +54,6 @@
         <h1>나이키 안산고잔 카탈로그</h1>
     </header>
 
-    <!-- 신발, 의류, 기술 3개 탭만 배치 -->
     <div class="categories">
         <div class="cat-btn active" onclick="filterCategory('신발', this)">신발</div>
         <div class="cat-btn" onclick="filterCategory('의류', this)">의류</div>
@@ -130,8 +123,8 @@
                     <textarea id="inputDesc" placeholder="기술 설명 입력"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>사진 파일명 또는 URL</label>
-                    <input type="text" id="inputPhoto" placeholder="예: 시트1_Images/1.png">
+                    <label>사진 또는 동영상 파일 선택 (갤러리에서 선택)</label>
+                    <input type="file" id="inputFile" accept="image/*,video/*">
                 </div>
                 <div class="modal-btns">
                     <button type="submit" class="action-btn" style="background:#ff6600; color:#fff;">등록하기</button>
@@ -143,11 +136,11 @@
 
     <script>
         // ★ 중요: 구글 Apps Script 웹 앱 URL 입력
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyyN87RrfO4wwZ1M4Vov5ffF3LgoVB52MTwvemUQc0Ko1lJLSCudGkNc3cwcDbGE8zU/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4Xa2Dj_AEr1AcwnHSQRHgyakttEvqmvDP252m_IH25gIaWxBZuvvmw-l7NZYNd8jX/exec";
 
         let productList = [];
         let techList = [];
-        let currentCategory = '신발'; // 기본 첫 화면은 '신발'로 설정
+        let currentCategory = '신발';
 
         async function loadSheetData() {
             try {
@@ -170,37 +163,45 @@
             }
 
             if (type === 'tech') {
-                container.innerHTML = items.map(item => `
-                    <div class="product-card">
-                        <div class="product-title">${item['기술 이름'] || '기술명 없음'}</div>
-                        <div class="product-code">분류: ${item['카테고리'] || '기술'} | ID: ${item['ID'] || '-'}</div>
-                        
-                        <div class="image-container">
-                            ${item['기술사진'] ? `<img src="${item['기술사진']}" alt="${item['기술 이름']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">` : '사진 준비 중'}
-                        </div>
+                container.innerHTML = items.map(item => {
+                    const photo = item['기술사진'] || '';
+                    const isVideo = photo.endsWith('.mp4') || photo.includes('video');
+                    return `
+                        <div class="product-card">
+                            <div class="product-title">${item['기술 이름'] || '기술명 없음'}</div>
+                            <div class="product-code">분류: ${item['카테고리'] || '기술'} | ID: ${item['ID'] || '-'}</div>
+                            
+                            <div class="image-container">
+                                ${photo ? (isVideo ? `<video src="${photo}" controls></video>` : `<img src="${photo}" alt="${item['기술 이름']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">`) : '미디어 준비 중'}
+                            </div>
 
-                        <div class="section-title">기술 설명 및 가이드</div>
-                        <div class="product-usp">${item['기술설명'] || '등록된 설명이 없습니다.'}</div>
-                    </div>
-                `).join('');
+                            <div class="section-title">기술 설명 및 가이드</div>
+                            <div class="product-usp">${item['기술설명'] || '등록된 설명이 없습니다.'}</div>
+                        </div>
+                    `;
+                }).join('');
             } else {
-                container.innerHTML = items.map(item => `
-                    <div class="product-card">
-                        <div class="product-title">${item['제품명'] || '상품명 없음'}</div>
-                        <div class="product-code">품번: ${item['품번'] || '-'} | 카테고리: ${item['카테고리'] || '-'}</div>
-                        <div class="product-price">가격: ${item['가격'] ? Number(item['가격']).toLocaleString() + '원' : '가격 미정'}</div>
-                        
-                        <div class="image-container">
-                            ${item['제품사진'] ? `<img src="${item['제품사진']}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">` : '사진 준비 중'}
+                container.innerHTML = items.map(item => {
+                    const photo = item['제품사진'] || '';
+                    const isVideo = photo.endsWith('.mp4') || photo.includes('video');
+                    return `
+                        <div class="product-card">
+                            <div class="product-title">${item['제품명'] || '상품명 없음'}</div>
+                            <div class="product-code">품번: ${item['품번'] || '-'} | 카테고리: ${item['카테고리'] || '-'}</div>
+                            <div class="product-price">가격: ${item['가격'] ? Number(item['가격']).toLocaleString() + '원' : '가격 미정'}</div>
+                            
+                            <div class="image-container">
+                                ${photo ? (isVideo ? `<video src="${photo}" controls></video>` : `<img src="${photo}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">`) : '미디어 준비 중'}
+                            </div>
+
+                            <div class="section-title">핵심 스펙 (USP)</div>
+                            <div class="product-usp">${item['핵심스펙_USP'] || '등록된 스펙이 없습니다.'}</div>
+
+                            <div class="section-title">세일즈 멘트</div>
+                            <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
                         </div>
-
-                        <div class="section-title">핵심 스펙 (USP)</div>
-                        <div class="product-usp">${item['핵심스펙_USP'] || '등록된 스펙이 없습니다.'}</div>
-
-                        <div class="section-title">세일즈 멘트</div>
-                        <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
         }
 
@@ -226,7 +227,6 @@
                 });
                 displayData(filtered, 'tech');
             } else {
-                // 신발 또는 의류 필터링
                 const filtered = productList.filter(item => {
                     const cat = String(item['카테고리'] || '').trim();
                     const name = String(item['제품명'] || '').toLowerCase();
@@ -240,7 +240,6 @@
             }
         }
 
-        // 모달 열기/닫기 및 폼 토글
         function openModal() { document.getElementById('formModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('formModal').style.display = 'none'; }
 
@@ -265,10 +264,11 @@
             }
         }
 
-        // 데이터 전송(업로드) 함수
+        // 파일 읽기 및 데이터 전송 함수
         async function submitForm(event) {
             event.preventDefault();
             const targetSheet = document.getElementById('targetSheet').value;
+            const fileInput = document.getElementById('inputFile');
             
             let postData = {
                 targetSheet: targetSheet,
@@ -280,53 +280,60 @@
             if (targetSheet === '나이키 기술') {
                 postData['기술 이름'] = document.getElementById('inputTechName').value;
                 postData['기술설명'] = document.getElementById('inputDesc').value;
-                postData['기술사진'] = document.getElementById('inputPhoto').value;
             } else {
                 postData['제품명'] = document.getElementById('inputName').value;
                 postData['품번'] = document.getElementById('inputCode').value;
                 postData['가격'] = document.getElementById('inputPrice').value;
                 postData['핵심스펙_USP'] = document.getElementById('inputUsp').value;
                 postData['세일즈멘트'] = document.getElementById('inputSales').value;
-                postData['제품사진'] = document.getElementById('inputPhoto').value;
             }
 
-            alert("구글 시트에 데이터를 등록 중입니다...");
+            const proceedSend = async (fileData, fileName) => {
+                if (fileData) {
+                    postData.fileData = fileData;
+                    postData.fileName = fileName;
+                }
 
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(postData)
-                });
+                alert("구글 시트 및 드라이브에 업로드 중입니다...");
 
-                alert("등록이 완료되었습니다!");
-                closeModal();
-                document.getElementById('addItemForm').reset();
-                loadSheetData();
-            } catch (err) {
-                console.error(err);
-                alert("등록 중 오류가 발생했습니다.");
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(postData)
+                    });
+
+                    alert("등록이 완료되었습니다!");
+                    closeModal();
+                    document.getElementById('addItemForm').reset();
+                    loadSheetData();
+                } catch (err) {
+                    console.error(err);
+                    alert("등록 중 오류가 발생했습니다.");
+                }
+            };
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    proceedSend(e.target.result, file.name);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                proceedSend(null, null);
             }
         }
 
-        // 모바일 위로 당겨서 새로고침 (Pull-to-Refresh) 기능 구현
         let touchstartY = 0;
-        window.addEventListener('touchstart', e => {
-            touchstartY = e.touches[0].clientY;
-        });
-
+        window.addEventListener('touchstart', e => { touchstartY = e.touches[0].clientY; });
         window.addEventListener('touchend', e => {
             let touchendY = e.changedTouches[0].clientY;
-            // 화면 맨 위에서 아래로 100px 이상 쓸어내릴 때 새로고침 발동
-            if (window.scrollY === 0 && (touchendY - touchstartY) > 100) {
-                loadSheetData();
-            }
+            if (window.scrollY === 0 && (touchendY - touchstartY) > 100) { loadSheetData(); }
         });
 
-        window.onload = function() {
-            loadSheetData();
-        };
+        window.onload = function() { loadSheetData(); };
     </script>
 </body>
 </html>
