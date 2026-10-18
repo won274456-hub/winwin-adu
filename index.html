@@ -130,8 +130,9 @@
                     <input type="file" id="inputFile" accept="image/*,video/*">
                 </div>
                 <div class="form-group">
-                    <label>관리자 비밀번호 (필수: 6662)</label>
-                    <input type="password" id="inputPassword" required placeholder="비밀번호 입력">
+                    <label>관리자 비밀번호 확인</label>
+                    <!-- 비밀번호가 노출되지 않도록 완전히 빈칸으로 설정 -->
+                    <input type="password" id="inputPassword" required placeholder="관리자 비밀번호를 입력하세요">
                 </div>
                 <div class="modal-btns">
                     <button type="submit" class="action-btn" style="background:#ff6600; color:#fff;" id="submitBtnText">등록하기</button>
@@ -173,6 +174,7 @@
                 container.innerHTML = items.map((item, idx) => {
                     const photo = item['기술사진'] || '';
                     const isVideo = photo.endsWith('.mp4') || photo.includes('video');
+                    // 특수문자 깨짐 방지를 위해 안전하게 전역 배열에서 인덱스로 접근하도록 수정
                     return `
                         <div class="product-card">
                             <div class="product-title">${item['기술 이름'] || '기술명 없음'}</div>
@@ -185,7 +187,7 @@
                             <div class="section-title">기술 설명 및 가이드</div>
                             <div class="product-usp">${item['기술설명'] || '등록된 설명이 없습니다.'}</div>
 
-                            <button class="edit-btn" onclick='openModalForEdit(${JSON.stringify(item)}, "tech")'>✏️ 정보 수정하기</button>
+                            <button class="edit-btn" onclick='openModalForEdit(${idx}, "tech")'>✏️ 정보 수정하기</button>
                         </div>
                     `;
                 }).join('');
@@ -201,7 +203,6 @@
                             
                             <div class="image-container">
                                 ${photo ? (isVideo ? `<video src="${photo}" controls></video>` : `<img src="${photo}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">`) : '미디어 준비 중'}
-                            </div>
 
                             <div class="section-title">핵심 스펙 (USP)</div>
                             <div class="product-usp">${item['핵심스펙_USP'] || '등록된 스펙이 없습니다.'}</div>
@@ -209,7 +210,7 @@
                             <div class="section-title">세일즈 멘트</div>
                             <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
 
-                            <button class="edit-btn" onclick='openModalForEdit(${JSON.stringify(item)}, "product")'>✏️ 정보 수정하기</button>
+                            <button class="edit-btn" onclick='openModalForEdit(${idx}, "product")'>✏️ 정보 수정하기</button>
                         </div>
                     `;
                 }).join('');
@@ -227,18 +228,23 @@
             applyFilter();
         }
 
+        let currentFilteredItems = [];
+        let currentFilteredType = 'product';
+
         function applyFilter() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
             if (currentCategory === '기술') {
-                const filtered = techList.filter(item => {
+                currentFilteredType = 'tech';
+                currentFilteredItems = techList.filter(item => {
                     const name = String(item['기술 이름'] || '').toLowerCase();
                     const desc = String(item['기술설명'] || '').toLowerCase();
                     return name.includes(keyword) || desc.includes(keyword);
                 });
-                displayData(filtered, 'tech');
+                displayData(currentFilteredItems, 'tech');
             } else {
-                const filtered = productList.filter(item => {
+                currentFilteredType = 'product';
+                currentFilteredItems = productList.filter(item => {
                     const cat = String(item['카테고리'] || '').trim();
                     const name = String(item['제품명'] || '').toLowerCase();
                     const code = String(item['품번'] || '').toLowerCase();
@@ -247,7 +253,7 @@
                     const matchesKeyword = (name.includes(keyword) || code.includes(keyword));
                     return matchesCat && matchesKeyword;
                 });
-                displayData(filtered, 'product');
+                displayData(currentFilteredItems, 'product');
             }
         }
 
@@ -261,7 +267,8 @@
             document.getElementById('formModal').style.display = 'flex';
         }
 
-        function openModalForEdit(item, type) {
+        function openModalForEdit(index, type) {
+            const item = currentFilteredItems[index];
             document.getElementById('modalTitle').innerText = "정보 수정하기";
             document.getElementById('submitBtnText').innerText = "수정 완료";
             document.getElementById('addItemForm').reset();
@@ -320,7 +327,7 @@
             event.preventDefault();
             const password = document.getElementById('inputPassword').value;
             if (password !== "6662") {
-                alert("관리자 비밀번호가 틀렸습니다! (올바른 비밀번호를 입력해주세요)");
+                alert("관리자 비밀번호가 틀렸습니다!");
                 return;
             }
 
