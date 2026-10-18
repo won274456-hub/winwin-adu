@@ -44,7 +44,7 @@
         .section-title { font-size: 13px; font-weight: bold; color: #ffaa66; margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; }
         .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; white-space: pre-line; }
 
-        .edit-btn { margin-top: 10px; width: 100%; padding: 10px; background: #333; color: #ff8833; border: 1px solid #444; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; }
+        .edit-btn { margin-top: 15px; width: 100%; padding: 12px; background: #333; color: #ff8833; border: 1px solid #444; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
         .edit-btn:hover { background: #444; }
 
         .loading, .error { text-align: center; padding: 40px; color: #888; font-size: 16px; }
@@ -130,8 +130,7 @@
                     <input type="file" id="inputFile" accept="image/*,video/*">
                 </div>
                 <div class="form-group">
-                    <label>관리자 비밀번호 확인</label>
-                    <!-- 비밀번호가 노출되지 않도록 완전히 빈칸으로 설정 -->
+                    <label>관리자 비밀번호 확인 (필수: 6662)</label>
                     <input type="password" id="inputPassword" required placeholder="관리자 비밀번호를 입력하세요">
                 </div>
                 <div class="modal-btns">
@@ -174,7 +173,6 @@
                 container.innerHTML = items.map((item, idx) => {
                     const photo = item['기술사진'] || '';
                     const isVideo = photo.endsWith('.mp4') || photo.includes('video');
-                    // 특수문자 깨짐 방지를 위해 안전하게 전역 배열에서 인덱스로 접근하도록 수정
                     return `
                         <div class="product-card">
                             <div class="product-title">${item['기술 이름'] || '기술명 없음'}</div>
@@ -203,6 +201,7 @@
                             
                             <div class="image-container">
                                 ${photo ? (isVideo ? `<video src="${photo}" controls></video>` : `<img src="${photo}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">`) : '미디어 준비 중'}
+                            </div>
 
                             <div class="section-title">핵심 스펙 (USP)</div>
                             <div class="product-usp">${item['핵심스펙_USP'] || '등록된 스펙이 없습니다.'}</div>
