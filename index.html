@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나이키 안산고잔 카탈로그</title>
+    <title>나이키 안산고잔 통합 카탈로그 & 기술 백과</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff6600">
     <style>
@@ -12,8 +12,8 @@
         header { text-align: center; margin-bottom: 20px; }
         h1 { font-size: 24px; color: #ffffff; margin-bottom: 15px; }
         
-        .categories { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .cat-btn { flex: 1; padding: 12px; background: #1e1e1e; border: 1px solid #333; color: #bbb; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; }
+        .categories { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .cat-btn { flex: 1; padding: 12px 8px; background: #1e1e1e; border: 1px solid #333; color: #bbb; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; }
         .cat-btn.active { background: #ff6600; color: #fff; border-color: #ff6600; }
 
         .search-box { margin-bottom: 15px; }
@@ -33,7 +33,7 @@
         .image-container img { width: 100%; height: 100%; object-fit: cover; }
 
         .section-title { font-size: 13px; font-weight: bold; color: #ffaa66; margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; }
-        .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; }
+        .product-usp, .product-sales { font-size: 14px; color: #ccc; line-height: 1.5; margin-bottom: 8px; background: #222; padding: 10px; border-radius: 6px; white-space: pre-line; }
 
         .loading, .error { text-align: center; padding: 40px; color: #888; font-size: 16px; }
     </style>
@@ -41,18 +41,18 @@
 <body>
 
     <header>
-        <h1>나이키 안산고잔 카탈로그</h1>
+        <h1>나이키 안산고잔 통합 앱</h1>
     </header>
 
     <div class="categories">
         <div class="cat-btn active" onclick="filterCategory('전체', this)">전체</div>
         <div class="cat-btn" onclick="filterCategory('신발', this)">신발</div>
         <div class="cat-btn" onclick="filterCategory('의류', this)">의류</div>
-        <div class="cat-btn" onclick="filterCategory('용품', this)">용품</div>
+        <div class="cat-btn" onclick="filterCategory('기술', this)">나이키 기술</div>
     </div>
 
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 품번 또는 상품명을 입력하세요" oninput="searchProducts()">
+        <input type="text" id="searchInput" placeholder="🔍 검색어를 입력하세요" oninput="searchProducts()">
     </div>
 
     <button class="refresh-btn" onclick="loadSheetData()">🔄 최신 데이터 불러오기</button>
@@ -62,10 +62,11 @@
     </div>
 
     <script>
-        // ★ 중요: 여기에 아까 복사하신 구글 Apps Script 웹 앱 URL을 넣으세요!
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwehNvi78DnQWbbGanjI7LMDnbGrEa9ub-skHxzFoYumlu3XdokxVmlEoNiKzxxugO7/exec";
+        // ★ 중요: 구글 Apps Script 웹 앱 URL 입력
+        const SCRIPT_URL = "여기에_구글_Apps_Script_웹앱_URL을_입력하세요";
 
-        let allData = [];
+        let productList = [];
+        let techList = [];
         let currentCategory = '전체';
 
         async function loadSheetData() {
@@ -74,39 +75,58 @@
 
             try {
                 const response = await fetch(SCRIPT_URL);
-                const data = await response.json();
-                allData = data;
-                displayProducts(allData);
+                const result = await response.json();
+                
+                productList = result.products || [];
+                techList = result.techs || [];
+                
+                applyFilter();
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
-                container.innerHTML = '<div class="error">데이터를 불러오는 데 실패했습니다. Apps Script URL을 확인해주세요.</div>';
+                container.innerHTML = '<div class="error">데이터를 불러오는 데 실패했습니다. URL을 확인해주세요.</div>';
             }
         }
 
-        function displayProducts(items) {
+        function displayData(items, type) {
             const container = document.getElementById('productContainer');
             if (!items || items.length === 0) {
-                container.innerHTML = '<div class="error">표시할 상품이 없습니다.</div>';
+                container.innerHTML = '<div class="error">표시할 항목이 없습니다.</div>';
                 return;
             }
 
-            container.innerHTML = items.map(item => `
-                <div class="product-card">
-                    <div class="product-title">${item['제품명'] || '상품명 없음'}</div>
-                    <div class="product-code">품번: ${item['품번'] || '-'} | 카테고리: ${item['카테고리'] || '-'}</div>
-                    <div class="product-price">가격: ${item['가격'] ? Number(item['가격']).toLocaleString() + '원' : '가격 미정'}</div>
-                    
-                    <div class="image-container">
-                        ${item['제품사진'] ? `<img src="${item['제품사진']}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">` : '사진 준비 중'}
+            if (type === 'tech') {
+                container.innerHTML = items.map(item => `
+                    <div class="product-card">
+                        <div class="product-title">${item['기술 이름'] || '기술명 없음'}</div>
+                        <div class="product-code">분류: ${item['카테고리'] || '기술'} | ID: ${item['ID'] || '-'}</div>
+                        
+                        <div class="image-container">
+                            ${item['기술사진'] ? `<img src="${item['기술사진']}" alt="${item['기술 이름']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">` : '사진 준비 중'}
+                        </div>
+
+                        <div class="section-title">기술 설명 및 가이드</div>
+                        <div class="product-usp">${item['기술설명'] || '등록된 설명이 없습니다.'}</div>
                     </div>
+                `).join('');
+            } else {
+                container.innerHTML = items.map(item => `
+                    <div class="product-card">
+                        <div class="product-title">${item['제품명'] || '상품명 없음'}</div>
+                        <div class="product-code">품번: ${item['품번'] || '-'} | 카테고리: ${item['카테고리'] || '-'}</div>
+                        <div class="product-price">가격: ${item['가격'] ? Number(item['가격']).toLocaleString() + '원' : '가격 미정'}</div>
+                        
+                        <div class="image-container">
+                            ${item['제품사진'] ? `<img src="${item['제품사진']}" alt="${item['제품명']}" onerror="this.parentElement.innerHTML='이미지 로드 실패'">` : '사진 준비 중'}
+                        </div>
 
-                    <div class="section-title">핵심 스펙 (USP)</div>
-                    <div class="product-usp">${item['핵심스펙_USP'] || '등록된 스펙이 없습니다.'}</div>
+                        <div class="section-title">핵심 스펙 (USP)</div>
+                        <div class="product-usp">${item['핵심스펙_USP'] || '등록된 스펙이 없습니다.'}</div>
 
-                    <div class="section-title">세일즈 멘트</div>
-                    <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
-                </div>
-            `).join('');
+                        <div class="section-title">세일즈 멘트</div>
+                        <div class="product-sales">${item['세일즈멘트'] || '등록된 세일즈 멘트가 없습니다.'}</div>
+                    </div>
+                `).join('');
+            }
         }
 
         function filterCategory(category, element) {
@@ -124,27 +144,38 @@
         function applyFilter() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
-            const filtered = allData.filter(item => {
-                const category = String(item['카테고리'] || '').trim();
-                const name = String(item['제품명'] || '').toLowerCase();
-                const code = String(item['품번'] || '').toLowerCase();
-
-                const matchesCategory = (currentCategory === '전체' || category === currentCategory);
-                const matchesKeyword = (name.includes(keyword) || code.includes(keyword));
-
-                return matchesCategory && matchesKeyword;
-            });
-
-            displayProducts(filtered);
+            if (currentCategory === '기술') {
+                const filtered = techList.filter(item => {
+                    const name = String(item['기술 이름'] || '').toLowerCase();
+                    const desc = String(item['기술설명'] || '').toLowerCase();
+                    return name.includes(keyword) || desc.includes(keyword);
+                });
+                displayData(filtered, 'tech');
+            } else if (currentCategory === '신발' || currentCategory === '의류') {
+                const filtered = productList.filter(item => {
+                    const cat = String(item['카테고리'] || '').trim();
+                    const name = String(item['제품명'] || '').toLowerCase();
+                    const code = String(item['품번'] || '').toLowerCase();
+                    
+                    const matchesCat = (cat === currentCategory);
+                    const matchesKeyword = (name.includes(keyword) || code.includes(keyword));
+                    return matchesCat && matchesKeyword;
+                });
+                displayData(filtered, 'product');
+            } else {
+                // 전체 보기 (상품 + 기술 모두 합쳐서 보여주거나 상품 우선 정렬)
+                const filteredProducts = productList.filter(item => {
+                    const name = String(item['제품명'] || '').toLowerCase();
+                    const code = String(item['품번'] || '').toLowerCase();
+                    return name.includes(keyword) || code.includes(keyword);
+                });
+                displayData(filteredProducts, 'product');
+            }
         }
 
-        // 페이지 로드 시 데이터 가져오기 실행
         window.onload = function() {
             loadSheetData();
         };
     </script>
-</body>
-</html>
-
 </body>
 </html>
